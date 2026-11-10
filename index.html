@@ -172,6 +172,41 @@ canvas#cv{width:100%;height:calc(100vh - 330px);min-height:280px;background:#fff
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:26px}
 .slot{font-family:"Baloo 2";font-size:40px;text-align:center;padding:40px 0}
+.btn:disabled{opacity:.4}
+.tin{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--txt);font-weight:700;margin:6px 0;font-size:16px}
+.tin:focus{outline:2px solid var(--pri);border-color:transparent}
+.nv{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:12px 0}
+.nv button,.nv div{aspect-ratio:1;border-radius:8px;background:#12356b;font-size:16px;display:flex;align-items:center;justify-content:center;color:#7d9bd1}
+.nv .ship{background:#9db0d1}.nv .miss{background:#0b1f42}.nv .hit{background:#ff9a5c}.nv .sunk{background:var(--bad)}
+canvas#hk{width:100%;height:calc(100vh - 110px);min-height:420px;touch-action:none;border-radius:22px;display:block;background:#0b1030;border:1px solid var(--line)}
+.slots{display:flex;justify-content:center;gap:8px;margin:14px 0}
+.slots button{font-size:38px;width:60px;height:60px;border-radius:16px;background:var(--card);line-height:1}
+.slots.pal2{gap:6px}.slots.pal2 button{font-size:30px;width:50px;height:50px}
+.hrow{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:12px;padding:6px 14px;margin:6px 0;font-size:22px}
+.hrow b{letter-spacing:2px;color:var(--yel);font-size:18px}
+.buzz{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.buzz button{padding:26px 8px;border-radius:22px;font-weight:800;font-size:19px;color:#fff;touch-action:manipulation}
+.mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.mem button{aspect-ratio:1;border-radius:14px;background:linear-gradient(135deg,var(--vi),var(--pri));font-size:0;line-height:1}
+.mem button.up{background:var(--card);font-size:34px}
+.mem button.done{opacity:.35}
+.dots{display:grid;grid-template-columns:repeat(4,22px 1fr) 22px;grid-template-rows:repeat(4,22px 1fr) 22px;aspect-ratio:1;margin:12px 0}
+.dots .d{background:#fff;border-radius:50%;margin:5px}
+.dots .lh{padding:7px 0;background-clip:content-box;background-color:var(--line);border-radius:4px}
+.dots .lv{padding:0 7px;background-clip:content-box;background-color:var(--line);border-radius:4px}
+.dots .b{border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;color:#0d0e1f}
+.kb{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin:12px 0}
+.kb button{padding:12px 0;border-radius:10px;background:var(--card);font-weight:800}
+.kb button.g{opacity:.25}
+.kb button.okk{background:var(--ok);color:#03271a}
+.hw{font-family:"Baloo 2";font-size:30px;letter-spacing:5px;margin:10px 0;display:flex;flex-wrap:wrap;gap:4px 20px;justify-content:center}
+.hw span{white-space:nowrap}
+.dice{font-size:56px;letter-spacing:4px;line-height:1.2;margin:16px 0}
+.drow{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:12px;padding:4px 14px;margin:6px 0;font-weight:800}
+.drow span:last-child{font-size:30px}
+.cw{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:10px 0}
+.cw button{aspect-ratio:1.2;border-radius:10px;background:#e9e4d4;color:#222;font-weight:800;font-size:10.5px;padding:2px;overflow:hidden;word-break:break-word;line-height:1.1}
+.cw .R{background:#e23c4b;color:#fff}.cw .B{background:#3b6cf0;color:#fff}.cw .N{background:#8a8570;color:#fff}.cw .X{background:#111;color:#fff;outline:1px solid #555}
 </style>
 </head>
 <body>
@@ -476,6 +511,289 @@ def({id:'reflejos',icon:'⚡',name:'Duelo de reflejos',c:'#22c58b',min:2,max:2,b
   const fin=()=>{$('#s0').textContent=sc[0];$('#s1').textContent=sc[1];du.classList.remove('go');
    if(sc[0]>=GOAL||sc[1]>=GOAL){state='end';const w=sc[0]>=GOAL?0:1;confetti();later(900,()=>msg(`🏆 ¡${nm[w]} gana el duelo! Toca para repetir`))}else later(1400,round)};
  }});
+
+/* ================= MÁS JUEGOS ================= */
+const QUIZ=[
+['¿Cuál es el río más largo de la península ibérica?',['Tajo','Ebro','Duero','Guadalquivir']],
+['¿Cuántos huesos tiene el cuerpo humano adulto?',['206','186','226','312']],
+['¿Cuál es el planeta más grande del sistema solar?',['Júpiter','Saturno','Neptuno','La Tierra']],
+['¿En qué año llegó el ser humano a la Luna?',['1969','1959','1965','1972']],
+['¿Quién pintó «Las Meninas»?',['Velázquez','Goya','El Greco','Murillo']],
+['¿Cuál es el país más grande del mundo?',['Rusia','Canadá','China','Estados Unidos']],
+['¿Cuál es el símbolo químico del oro?',['Au','Ag','Or','Go']],
+['¿Cuántas cuerdas tiene una guitarra española?',['6','5','7','12']],
+['¿Cuál es la capital de Australia?',['Canberra','Sídney','Melbourne','Perth']],
+['¿Quién escribió «Cien años de soledad»?',['Gabriel García Márquez','Mario Vargas Llosa','Julio Cortázar','Isabel Allende']],
+['¿Cuál es el océano más grande?',['Pacífico','Atlántico','Índico','Ártico']],
+['¿Cuál es el animal terrestre más rápido?',['Guepardo','León','Gacela','Galgo']],
+['¿En qué ciudad está la Sagrada Familia?',['Barcelona','Madrid','Valencia','Sevilla']],
+['¿Cuál es el pico más alto de España?',['Teide','Mulhacén','Aneto','Veleta']],
+['¿Cuántos minutos dura un partido de la NBA sin prórroga?',['48','40','45','60']],
+['¿Cuál es la moneda de Japón?',['Yen','Yuan','Won','Rupia']],
+['¿En qué continente está Egipto?',['África','Asia','Europa','Oceanía']],
+['¿Cuántos lados tiene un hexágono?',['6','5','7','8']],
+['¿Quién escribió «Don Quijote de la Mancha»?',['Miguel de Cervantes','Lope de Vega','Quevedo','Góngora']],
+['¿Qué metal es líquido a temperatura ambiente?',['Mercurio','Plomo','Estaño','Aluminio']],
+['¿Cuál es la capital de Portugal?',['Lisboa','Oporto','Faro','Coímbra']],
+['¿Cuántas provincias tiene España?',['50','47','52','17']],
+['¿Cuántas teclas tiene un piano estándar?',['88','76','92','100']],
+['¿Cuál es el planeta más cercano al Sol?',['Mercurio','Venus','Marte','La Tierra']],
+['¿En qué país está Machu Picchu?',['Perú','Bolivia','México','Chile']],
+['¿Cuál es el animal más grande del mundo?',['Ballena azul','Elefante africano','Cachalote','Orca']],
+['¿Cuántos anillos tiene la bandera olímpica?',['5','4','6','7']],
+['¿Qué ciudad es conocida como «la Gran Manzana»?',['Nueva York','Los Ángeles','Chicago','Londres']],
+['¿Cuál es el idioma con más hablantes nativos?',['Chino mandarín','Inglés','Español','Hindi']],
+['¿Quién formuló la teoría de la relatividad?',['Albert Einstein','Isaac Newton','Galileo Galilei','Stephen Hawking']],
+['¿En qué año empezó la Segunda Guerra Mundial?',['1939','1936','1941','1945']],
+['¿Cuál es el desierto cálido más grande del mundo?',['Sáhara','Gobi','Atacama','Kalahari']],
+['¿Cuántos corazones tiene un pulpo?',['3','1','2','8']],
+['¿Qué país tiene forma de bota?',['Italia','Grecia','Portugal','Croacia']],
+['¿De qué color es la línea 1 del Metro de Madrid?',['Azul claro','Roja','Amarilla','Verde']],
+['¿Cuántos segundos tiene una hora?',['3.600','360','1.200','6.000']],
+['¿Cuál es el órgano más grande del cuerpo humano?',['La piel','El hígado','El intestino','Los pulmones']],
+['¿Cuál es la montaña más alta del mundo?',['Everest','K2','Aconcagua','Mont Blanc']],
+['¿Qué pintor se cortó parte de una oreja?',['Van Gogh','Picasso','Dalí','Monet']],
+['¿De qué deporte es el Tour de Francia?',['Ciclismo','Atletismo','Automovilismo','Motociclismo']],
+['¿Cuántas patas tiene una araña?',['8','6','10','12']],
+['¿Cuál es la capital de Canadá?',['Ottawa','Toronto','Montreal','Vancouver']],
+['¿Qué vitamina produce el cuerpo con la luz del sol?',['D','A','C','B12']],
+['¿Qué comunidad autónoma tiene más provincias?',['Castilla y León','Andalucía','Castilla-La Mancha','Galicia']],
+['¿Cuál es el hueso más largo del cuerpo?',['Fémur','Tibia','Húmero','Peroné']],
+['¿Cuántos colores tiene el arcoíris?',['7','5','6','8']],
+['¿Qué país ganó el Mundial de fútbol de 2010?',['España','Países Bajos','Alemania','Brasil']],
+['¿Cuántos jugadores de un equipo hay en pista en baloncesto?',['5','6','7','4']],
+['¿Cuál es la capital de Italia?',['Roma','Milán','Nápoles','Florencia']],
+['¿Qué gas absorben las plantas del aire?',['Dióxido de carbono','Oxígeno','Nitrógeno','Helio']]
+];
+const CANCIONES=['Macarena','La Bamba','Despacito','Bohemian Rhapsody','Waka Waka','Cumpleaños feliz','We Will Rock You','Aserejé','La cucaracha','Bella ciao','Eye of the Tiger','Y.M.C.A.','Dancing Queen','Thriller','Billie Jean','Yellow Submarine','Hey Jude','Imagine','La bicicleta','Gasolina','Hakuna Matata','Himno de la Champions','Himno de España','La Marcha Imperial (Star Wars)','Tema de Harry Potter','Tema de Misión Imposible','Tema de La Pantera Rosa','Tema de Los Simpson','Tema de Juego de Tronos','Tema de Piratas del Caribe','Tema de Super Mario','Tema de Tetris','My Heart Will Go On (Titanic)',"Livin' la vida loca",'Corazón partío','Color esperanza','La chica de ayer','Mediterráneo','Vivir mi vida','Danza Kuduro','Shape of You','Viva la Vida','Seven Nation Army','Sweet Caroline','I Will Survive','The Final Countdown','Take On Me','Barbie Girl','Baby Shark','Feliz Navidad','Los peces en el río','Campana sobre campana','Jingle Bells','Para Elisa','Himno de la alegría','Sarandonga','Resistiré','Volare','Eres tú','Soldadito marinero','Zapatillas','Ave María (Bisbal)','Bulería','Despechá','Devuélveme a mi chica','Mamma Mia','Libre soy (Frozen)','Bajo el mar (La Sirenita)','Tema de Tiburón','Tema de Indiana Jones'];
+const LUGARES=['Aeropuerto','Hospital','Playa','Supermercado','Cine','Colegio','Restaurante','Gimnasio','Estadio de fútbol','Museo','Hotel','Casino','Circo','Biblioteca','Estación de metro','Crucero','Boda','Zoo','Estación de esquí','Comisaría','Peluquería','Discoteca','Camping','Parque de atracciones','Banco','Farmacia','Universidad','Gasolinera','Submarino','Estación espacial'];
+const TRAMPA=[
+['¿Quién de aquí sobreviviría más tiempo en una isla desierta?','¿Quién de aquí tardaría más en darse cuenta de que está en una isla desierta?'],
+['¿Cuántas horas duermes al día?','¿Cuántas veces miras el móvil en una hora?'],
+['¿Quién de aquí cocina mejor?','¿Quién de aquí sería capaz de quemar una ensalada?'],
+['¿Cuántos países has visitado?','¿Cuántos pares de zapatos tienes?'],
+['¿Quién de aquí es más puntual?','¿Quién de aquí llegaría tarde a su propia boda?'],
+['¿A qué edad es ideal independizarse?','¿A qué edad aprendiste a montar en bici?'],
+['¿Cuántos euros pagarías por una buena cena?','¿Cuántos euros te has gastado como máximo en unas zapatillas?'],
+['¿Quién de aquí sería mejor presidente?','¿Quién de aquí sería mejor villano de película?'],
+['¿Cuántos cafés es razonable tomar al día?','¿Cuántas duchas te das a la semana?'],
+['¿Quién de aquí daría el mejor discurso?','¿Quién de aquí manda los audios más largos?'],
+['Di un famoso con el que cenarías','Di un famoso que te cae fatal'],
+['Di una comida perfecta para una primera cita','Di la comida que más mancha'],
+['¿Cuántos amigos de verdad se pueden tener?','¿Cuántos grupos de WhatsApp tienes silenciados?'],
+['¿Quién de aquí ganaría un concurso de la tele?','¿Quién de aquí lloraría en un concurso de la tele?'],
+['Di un animal que tendrías de mascota','Di un animal que te da pánico'],
+['¿Cuántos minutos tardas en arreglarte para salir?','¿Cuántos minutos aguantas sin mirar el móvil?'],
+['Di una ciudad para vivir un año','Di una ciudad a la que no volverías'],
+['¿Quién de aquí guardaría mejor un secreto?','¿Quién de aquí es más cotilla?'],
+['¿Cuántos días seguidos de vacaciones son los ideales?','¿Cuántos días aguantarías sin ducharte?'],
+['Di una película para ver en familia','Di una película que te dio miedo de pequeño'],
+['¿Quién de aquí conduce mejor?','¿Quién de aquí se perdería con el GPS puesto?'],
+['Di algo que te llevarías a una isla desierta','Di algo que siempre se te olvida al salir de casa'],
+['¿A qué hora es perfecto cenar?','¿A qué hora te acostaste el sábado pasado?'],
+['Di el mejor plan para un domingo','Di el peor plan para un lunes']
+];
+const MEMO=['🐶','🐱','🦊','🐼','🐸','🐵','🦄','🐙','🍕','🍩','🍓','🌵','⚽','🎸','🚀','🌈','🎁','👑','💎','🔥'];
+const norm=s=>s.toUpperCase().normalize('NFD').replace(/Ñ/g,'Ñ').replace(/[̀-ͯ]/g,'');
+const mmss=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+
+def({id:'naval',icon:'🚢',name:'Batalla naval',c:'#0ea5e9',min:2,max:2,best:[2,2],desc:'Coloca tu flota en secreto y hunde la del rival.',
+ rules:`<ol><li>Cada uno ve en secreto dónde está su flota (la coloca la app; puedes recolocarla).</li><li>Por turnos, tocad una casilla del mar rival para disparar.</li><li>Si aciertas, repites. Gana quien hunda los 5 barcos del otro.</li></ol>`,
+ start(){const g=this,nm=P(),SZ=8,SH=[4,3,2,2,1],B=[null,null];
+  const S2=[0,1].map(()=>Array.from({length:SZ},()=>Array(SZ).fill(0)));
+  const mk=()=>{const b=Array.from({length:SZ},()=>Array(SZ).fill(0));SH.forEach((len,si)=>{for(let tr=0;tr<800;tr++){const h=rnd(2),r=rnd(h?SZ:SZ-len+1),c=rnd(h?SZ-len+1:SZ),cells=[];let ok=true;
+     for(let k=0;k<len;k++){const rr=r+(h?0:k),cc=c+(h?k:0);cells.push([rr,cc]);for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const a=rr+dr,e=cc+dc;if(a>=0&&a<SZ&&e>=0&&e<SZ&&b[a][e])ok=false}}
+     if(ok){cells.forEach(([a,e])=>b[a][e]=si+1);break}}});return b};
+  const sunk=(p,id)=>{for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++)if(B[p][r][c]===id&&S2[p][r][c]!==2)return false;return true};
+  const left=p=>SH.filter((_,i)=>!sunk(p,i+1)).length;
+  const grid=(p,own,tap)=>`<div class="nv">${B[p].map((row,r)=>row.map((v,c)=>{const s=S2[p][r][c],dn=s===2&&sunk(p,v),cl=s===2?(dn?'sunk':'hit'):s===1?'miss':(own&&v?'ship':''),tx=s===2?(dn?'☠️':'💥'):s===1?'•':'';return tap?`<button data-a="s" data-r="${r}" data-c="${c}" class="${cl}">${tx}</button>`:`<div class="${cl}">${tx}</div>`}).join('')).join('')}</div>`;
+  const setup=p=>passScreen(g,nm[p],'Vas a ver tu flota. Que no mire el rival.',()=>{B[p]=mk();
+    const show=()=>screen(g,`<div class="center"><p class="lbl">Tu flota, ${esc(nm[p])}</p>${grid(p,true,false)}<p class="sub">Barcos de 4, 3, 2, 2 y 1 casillas.</p><button class="btn" data-a="re">🔀 Recolocar</button><button class="btn primary xl" data-a="ok">Listo · ocultar</button></div>`,{re:()=>{B[p]=mk();show()},ok:()=>p===0?setup(1):turn(rnd(2),'')});show()});
+  const turn=(cur,msg)=>{const en=1-cur;let lock=false;
+   screen(g,`<div class="center"><p class="lbl">Turno de</p><h2 style="color:var(--yel);font-size:30px">${esc(nm[cur])}</h2><p class="sub" id="nvm">${msg||'Dispara al mar de '+esc(nm[en])}</p>${grid(en,false,true)}<div class="stats">Barcos a flote · ${esc(nm[0])}: <b>${left(0)}</b> · ${esc(nm[1])}: <b>${left(1)}</b></div></div>`,{s:t=>{if(lock)return;const r=+t.dataset.r,c=+t.dataset.c;if(S2[en][r][c])return;const v=B[en][r][c];
+     if(v){S2[en][r][c]=2;vib(60);beep(300,.2,'sawtooth');
+      if(left(en)===0){confetti();screen(g,`<div class="center"><h1 style="font-size:40px;margin:10px 0">🏆 ¡Gana ${esc(nm[cur])}!</h1><p class="lbl">Flota de ${esc(nm[0])}</p>${grid(0,true,false)}<p class="lbl">Flota de ${esc(nm[1])}</p>${grid(1,true,false)}<button class="btn primary xl" data-a="re">Revancha</button></div>`,{re:()=>g.start()});return}
+      turn(cur,sunk(en,v)?'☠️ ¡Hundido! Dispara otra vez':'💥 ¡Tocado! Dispara otra vez')}
+     else{S2[en][r][c]=1;lock=true;t.className='miss';t.textContent='•';beep(200,.15);$('#nvm').textContent='🌊 Agua… le toca a '+nm[en];later(1100,()=>turn(en,''))}}})};
+  setup(0)}});
+
+def({id:'hockey',icon:'🏒',name:'Hockey de mesa',c:'#06b6d4',min:2,max:2,best:[2,2],desc:'Móvil en la mesa: cada uno mueve su mazo con el dedo.',
+ rules:`<ol><li>Poned el móvil en la mesa entre los dos. Cada uno defiende su lado.</li><li>Mueve tu mazo con el dedo dentro de tu mitad y golpea el disco.</li><li>Gana quien marque 5 goles.</li></ol>`,
+ start(){const g=this,nm=P(),sc=[0,0],GOAL=5;
+  screen(g,`<canvas id="hk"></canvas>`);
+  const cv=$('#hk'),W=cv.clientWidth||340,HH=cv.clientHeight||500,dpr=window.devicePixelRatio||1;cv.width=W*dpr;cv.height=HH*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  const PR=W*.1,R=W*.055,GW=W*.44,gx0=(W-GW)/2,gx1=gx0+GW,MX=W*.055,COL=['#ff5c8a','#3fd6ff'];
+  const pad=[{x:W/2,y:HH-PR*2.2,vx:0,vy:0},{x:W/2,y:PR*2.2,vx:0,vy:0}],pk={x:W/2,y:HH/2,vx:0,vy:0};
+  let over=0,flash=0,raf=0,last=performance.now();
+  const reset=to=>{pk.x=W/2;pk.y=HH/2+(to===0?1:-1)*HH*.13;pk.vx=pk.vy=0};
+  reset(rnd(2));
+  const mv=e=>{e.preventDefault();const b=cv.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top,now=performance.now();
+   if(over){if(e.type==='pointerdown'&&now-over>1200){sc[0]=sc[1]=0;over=0;reset(rnd(2))}return}
+   const i=y>HH/2?0:1,p=pad[i],nx=Math.max(PR,Math.min(W-PR,x)),ny=i===0?Math.max(HH/2+PR,Math.min(HH-PR,y)):Math.max(PR,Math.min(HH/2-PR,y)),dt=Math.max(8,now-(p.t||now-16));
+   let vx=(nx-p.x)/dt*16,vy=(ny-p.y)/dt*16;const sp=Math.hypot(vx,vy);if(sp>28){vx*=28/sp;vy*=28/sp}
+   p.vx=vx;p.vy=vy;p.x=nx;p.y=ny;p.t=now};
+  cv.addEventListener('pointerdown',mv);cv.addEventListener('pointermove',mv);
+  const goal=s=>{sc[s]++;flash=performance.now();beep(880,.3);vib(120);if(sc[s]>=GOAL){over=performance.now();confetti()}else reset(1-s)};
+  const draw=()=>{ctx.clearRect(0,0,W,HH);ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,HH/2);ctx.lineTo(W,HH/2);ctx.stroke();ctx.beginPath();ctx.arc(W/2,HH/2,W*.16,0,7);ctx.stroke();
+   ctx.lineWidth=8;ctx.lineCap='round';ctx.strokeStyle=COL[1];ctx.beginPath();ctx.moveTo(gx0,3);ctx.lineTo(gx1,3);ctx.stroke();ctx.strokeStyle=COL[0];ctx.beginPath();ctx.moveTo(gx0,HH-3);ctx.lineTo(gx1,HH-3);ctx.stroke();
+   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='rgba(255,255,255,.14)';ctx.font='800 '+Math.round(W*.34)+'px "Baloo 2",sans-serif';
+   ctx.fillText(sc[0],W/2,HH*.75);ctx.save();ctx.translate(W/2,HH*.25);ctx.rotate(Math.PI);ctx.fillText(sc[1],0,0);ctx.restore();
+   ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='800 15px Nunito,sans-serif';ctx.fillText(nm[0],W/2,HH*.75+W*.2);ctx.save();ctx.translate(W/2,HH*.25-W*.2);ctx.rotate(Math.PI);ctx.fillText(nm[1],0,0);ctx.restore();
+   pad.forEach((p,i)=>{ctx.fillStyle=COL[i];ctx.beginPath();ctx.arc(p.x,p.y,PR,0,7);ctx.fill();ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.arc(p.x,p.y,PR*.45,0,7);ctx.fill()});
+   ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(pk.x,pk.y,R,0,7);ctx.fill();
+   if(over){ctx.fillStyle='rgba(5,6,20,.75)';ctx.fillRect(0,0,W,HH);const w=sc[0]>=GOAL?0:1;ctx.fillStyle='#ffd23f';ctx.font='800 30px "Baloo 2",sans-serif';ctx.fillText('🏆 ¡Gana '+nm[w]+'!',W/2,HH/2-18);ctx.fillStyle='#fff';ctx.font='800 16px Nunito,sans-serif';ctx.fillText('Toca para la revancha',W/2,HH/2+22)}
+   else if(performance.now()-flash<900){ctx.fillStyle='#fff';ctx.font='800 44px "Baloo 2",sans-serif';ctx.fillText('¡GOL!',W/2,HH/2)}};
+  const step=()=>{const now=performance.now(),k=Math.min(2.5,(now-last)/16.67);last=now;
+   if(!over){pk.x+=pk.vx*k;pk.y+=pk.vy*k;const fr=Math.pow(.993,k);pk.vx*=fr;pk.vy*=fr;
+    if(pk.x<R){pk.x=R;pk.vx=Math.abs(pk.vx)}if(pk.x>W-R){pk.x=W-R;pk.vx=-Math.abs(pk.vx)}
+    const inGoal=pk.x>gx0+R*.4&&pk.x<gx1-R*.4;
+    if(pk.y<R){if(inGoal){if(pk.y<-R)goal(0)}else{pk.y=R;pk.vy=Math.abs(pk.vy)}}
+    else if(pk.y>HH-R){if(inGoal){if(pk.y>HH+R)goal(1)}else{pk.y=HH-R;pk.vy=-Math.abs(pk.vy)}}
+    pad.forEach(p=>{const dx=pk.x-p.x,dy=pk.y-p.y,d=Math.hypot(dx,dy)||.01,m=PR+R;
+     if(d<m){const nx=dx/d,ny=dy/d;pk.x=p.x+nx*m;pk.y=p.y+ny*m;const vn=(pk.vx-p.vx)*nx+(pk.vy-p.vy)*ny;
+      if(vn<0){pk.vx-=1.9*vn*nx;pk.vy-=1.9*vn*ny;beep(520,.03,'square',.05)}
+      const sp=Math.hypot(pk.vx,pk.vy);if(sp>MX){pk.vx*=MX/sp;pk.vy*=MX/sp}}
+     p.vx*=.8;p.vy*=.8})}
+   draw();raf=requestAnimationFrame(step)};
+  cleanup.push(()=>cancelAnimationFrame(raf));step()}});
+
+def({id:'codigo',icon:'🔐',name:'Descifra el código',c:'#10b981',min:2,max:2,best:[2,2],desc:'Uno crea un código de colores; el otro lo descifra con pistas.',
+ rules:`<ol><li>Uno crea un código secreto de 4 colores (se pueden repetir).</li><li>El otro tiene 8 intentos. Tras cada uno recibe pistas: <b>●</b> color y posición correctos, <b>○</b> color correcto en otra posición.</li><li>Luego se cambian los papeles.</li></ol><p>También podéis dejar que la app cree el código y descifrarlo juntos.</p>`,
+ start(){const g=this,nm=P(),COL=['🔴','🟡','🟢','🔵','🟣','🟠'],wins=[0,0];let maker=0,mode='duo';
+  const picker=(title,sub,btn,cb,extra)=>{const cur=[];const r=()=>screen(g,`<div class="center"><p class="lbl">${title}</p><div class="slots">${[0,1,2,3].map(i=>`<button data-a="del" data-i="${i}">${cur[i]!=null?COL[cur[i]]:'⚪'}</button>`).join('')}</div><div class="slots pal2">${COL.map((c,i)=>`<button data-a="add" data-i="${i}">${c}</button>`).join('')}</div><button class="btn primary xl" data-a="ok" ${cur.length<4?'disabled':''}>${btn}</button><p class="sub" style="margin-top:10px">${sub}</p>${extra||''}</div>`,{
+    add:t=>{if(cur.length<4){cur.push(+t.dataset.i);beep(500+cur.length*60,.04);r()}},del:t=>{const i=+t.dataset.i;if(i<cur.length){cur.splice(i,1);r()}},ok:()=>{if(cur.length===4)cb(cur.slice())}});r()};
+  const round=()=>{if(mode==='app'){guess(Array.from({length:4},()=>rnd(6)),[]);return}
+   passScreen(g,nm[maker],'Vas a crear el código secreto. Que no mire '+esc(nm[1-maker])+'.',()=>picker('Tu código secreto','Puedes repetir colores. Toca una casilla para quitarla.','Ocultar código',code=>passScreen(g,nm[1-maker],'Tienes 8 intentos para descifrar el código.',()=>guess(code,[]))))};
+  const guess=(code,hist)=>{const lastH=hist[hist.length-1];if(lastH&&lastH.ex===4){end(code,hist,true);return}if(hist.length>=8){end(code,hist,false);return}
+   const hh=hist.map(h=>`<div class="hrow"><span>${h.g.map(x=>COL[x]).join('')}</span><b>${'●'.repeat(h.ex)+'○'.repeat(h.pa)||'—'}</b></div>`).join('');
+   picker(`Intento ${hist.length+1} de 8`,'● color y posición · ○ color en otra posición','Comprobar',gs=>{let ex=0,com=0;for(let i=0;i<4;i++)if(gs[i]===code[i])ex++;for(let c=0;c<6;c++)com+=Math.min(gs.filter(x=>x===c).length,code.filter(x=>x===c).length);hist.push({g:gs,ex,pa:com-ex});beep(ex===4?880:440,.1);guess(code,hist)},hh)};
+  const end=(code,hist,ok)=>{if(mode==='duo')wins[ok?1-maker:maker]++;if(ok)confetti();
+   screen(g,`<div class="center"><h1 style="font-size:38px;margin:14px 0">${ok?'🎉 ¡Descifrado en '+hist.length+'!':'🔒 ¡Código a salvo!'}</h1><p class="lbl">El código era</p><div class="slots">${code.map(c=>`<button>${COL[c]}</button>`).join('')}</div>${mode==='duo'?`<p class="stats">${esc(nm[0])} ${wins[0]} — ${wins[1]} ${esc(nm[1])}</p>`:''}<button class="btn primary xl" data-a="n">${mode==='duo'?'Cambiar papeles':'Otro código'}</button></div>`,{n:()=>{maker=1-maker;round()}})};
+  screen(g,`<div class="center"><p class="lbl">¿Cómo jugáis?</p><button class="btn primary xl" data-a="duo">🆚 Uno crea, el otro descifra</button><button class="btn xl" data-a="app">🤝 La app lo crea y lo desciframos juntos</button></div>`,{duo:()=>{mode='duo';round()},app:()=>{mode='app';round()}})}});
+
+def({id:'quiz',icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,max:4,best:[2,4],desc:'Cultura general: responde quien pulse antes su botón.',
+ rules:`<ol><li>Sale una pregunta con 4 opciones. Cada uno tiene su pulsador.</li><li>Quien pulse antes tiene 8 segundos para responder.</li><li>Acierto +1, fallo −1.</li></ol>`,
+ start(){const g=this,sc=zero(),d=deck(QUIZ),COLS=['#ff4d5e','#3b6cf0','#22c58b','#f59e0b'];let n=0;
+  const next=()=>{const q=d(),ans=q[1][0],opts=shuffle(q[1].slice());n++;
+   const oh=(click,shown,pick)=>`<div class="opts">${opts.map((o,i)=>click?`<button class="opt" data-a="o" data-i="${i}">${esc(o)}</button>`:`<div class="opt ${shown&&o===ans?'good':shown&&pick===o?'wrong':''}">${esc(o)}</div>`).join('')}</div>`;
+   const res=(who,pick)=>{const ok=pick===ans;if(who)sc[who]+=ok?1:-1;if(ok){confetti();beep(880,.2)}else{beep(180,.3);vib(150)}
+    screen(g,`<div class="center"><h1 style="font-size:32px;margin:8px 0">${!who?'La respuesta era…':ok?'✅ ¡Correcto, '+esc(who)+'!':pick===''?'⏰ ¡Tiempo! −1 para '+esc(who):'❌ ¡Fallo! −1 para '+esc(who)}</h1><p class="lbl">${esc(q[0])}</p>${oh(false,true,pick)}<h3 style="margin-top:14px">Marcador</h3>${boardHTML(sc)}<button class="btn primary xl" data-a="n">Siguiente pregunta</button></div>`,{n:next})};
+   const answer=pi=>{const who=P()[pi];let left=8;
+    screen(g,`<div class="center"><div class="tbar"><span class="who">🔔 ${esc(who)} responde</span><span class="timer" id="tm">8</span></div><h2 class="q" style="font-size:24px">${esc(q[0])}</h2>${oh(true)}</div>`,{o:t=>{st();res(who,opts[+t.dataset.i])}});
+    const st=every(1000,()=>{left--;const tm=$('#tm');if(tm){tm.textContent=Math.max(0,left);if(left<=3)tm.classList.add('hot')}if(left<=0){st();res(who,'')}})};
+   screen(g,`<div class="center"><p class="lbl">Pregunta ${n}</p><h2 class="q" style="font-size:24px">${esc(q[0])}</h2>${oh(false,false)}<p class="sub" style="margin-top:10px">¡Pulsa tu botón si la sabes!</p><div class="buzz">${P().map((p,i)=>`<button data-p="${i}" style="background:${COLS[i]}">🔔 ${esc(p)}</button>`).join('')}</div><button class="btn ghost" data-a="x">Nadie la sabe</button></div>`,{x:()=>res(null,null)});
+   let done=false;document.querySelectorAll('.buzz button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();if(done)return;done=true;beep(900,.15);vib(40);answer(+b.dataset.p)}))};
+  next()}});
+
+def({id:'memo',icon:'🃏',name:'Parejas de memoria',c:'#a855f7',min:2,max:4,best:[2,4],desc:'Levanta dos cartas por turno y encuentra las parejas.',
+ rules:`<ol><li>Por turnos, levantad dos cartas.</li><li>Si son pareja, punto y repites. Si no, se vuelven a tapar y le toca al siguiente.</li><li>Cada ronda el tablero crece: 16, 20 y 24 cartas.</li></ol>`,
+ start(){const g=this,sc=zero();let lvl=0,sp=0;
+  const game=()=>{const n=[16,20,24][Math.min(lvl,2)],em=shuffle(MEMO.slice()).slice(0,n/2),cards=shuffle(em.concat(em)),done=new Set();let cur=sp%P().length,first=null,lock=false;
+   const head=()=>`Turno de <b style="color:var(--yel)">${esc(P()[cur])}</b>`;
+   screen(g,`<p class="center" id="mt" style="font-size:18px;font-weight:800;margin:0">${head()}</p><div class="mem">${cards.map((_,i)=>`<button data-a="f" data-i="${i}"></button>`).join('')}</div><div id="msb">${boardHTML(sc)}</div>`,{f:t=>{const i=+t.dataset.i;if(lock||done.has(i)||i===first)return;t.textContent=cards[i];t.classList.add('up');beep(600,.04);
+     if(first===null){first=i;return}
+     const a=first,o=document.querySelector('.mem [data-i="'+a+'"]');first=null;
+     if(cards[a]===cards[i]){done.add(a);done.add(i);sc[P()[cur]]++;beep(880,.15);vib(30);t.classList.add('done');o.classList.add('done');$('#msb').innerHTML=boardHTML(sc);
+      if(done.size===n){lock=true;later(700,()=>{confetti();lvl++;sp++;screen(g,`<div class="center"><h1 style="font-size:40px;margin:14px 0">¡Tablero completado! 🎉</h1>${boardHTML(sc)}<button class="btn primary xl" data-a="n">${lvl<3?'Siguiente ronda (más cartas)':'Otra ronda'}</button></div>`,{n:game})})}}
+     else{lock=true;later(900,()=>{[t,o].forEach(x=>{x.textContent='';x.classList.remove('up')});cur=(cur+1)%P().length;const mt=$('#mt');if(mt)mt.innerHTML=head();lock=false})}}})};
+  game()}});
+
+def({id:'cajas',icon:'🔲',name:'Puntos y cajas',c:'#eab308',min:2,max:3,best:[2,3],desc:'Traza líneas por turnos y cierra más cuadrados que nadie.',
+ rules:`<ol><li>Por turnos, tocad una línea entre dos puntos para trazarla.</li><li>Quien cierre un cuadrado se lo queda y <b>repite turno</b>.</li><li>Gana quien tenga más cuadrados al llenarse el tablero.</li></ol>`,
+ start(){const g=this,N=4,COLS=['#ff4d5e','#ffd23f','#3fd6ff'],nm=P();let first=0;
+  const game=()=>{const h=Array.from({length:N+1},()=>Array(N).fill(-1)),v=Array.from({length:N},()=>Array(N+1).fill(-1)),bx=Array.from({length:N},()=>Array(N).fill(-1)),sc=nm.map(()=>0);let cur=first%nm.length,filled=0;
+   const full=(r,c)=>r>=0&&r<N&&c>=0&&c<N&&h[r][c]>=0&&h[r+1][c]>=0&&v[r][c]>=0&&v[r][c+1]>=0;
+   const render=()=>{let s='';for(let R=0;R<=2*N;R++)for(let C=0;C<=2*N;C++){const r=R>>1,c=C>>1;
+     if(R%2===0&&C%2===0)s+='<i class="d"></i>';
+     else if(R%2===0){const o=h[r][c];s+=`<button class="lh" data-a="l" data-t="h" data-r="${r}" data-c="${c}" ${o>=0?'style="background-color:'+COLS[o]+'"':''}></button>`}
+     else if(C%2===0){const o=v[r][c];s+=`<button class="lv" data-a="l" data-t="v" data-r="${r}" data-c="${c}" ${o>=0?'style="background-color:'+COLS[o]+'"':''}></button>`}
+     else{const o=bx[r][c];s+=`<div class="b" ${o>=0?'style="background:'+COLS[o]+'"':''}>${o>=0?esc(nm[o][0].toUpperCase()):''}</div>`}}
+    const over=filled===N*N,mx=Math.max(...sc),w=nm.filter((_,i)=>sc[i]===mx);
+    screen(g,`<p class="center" style="font-weight:800;font-size:18px;margin:0">${over?(w.length>1?'🤝 ¡Empate!':'🏆 ¡Gana '+esc(w[0])+'!'):'<span class="dot" style="background:'+COLS[cur]+'"></span>Turno de '+esc(nm[cur])}</p><div class="dots">${s}</div><div class="chips">${nm.map((p,i)=>`<span class="chip" style="border-color:${COLS[i]}">${esc(p)} · <b>${sc[i]}</b></span>`).join('')}</div>${over?'<button class="btn primary xl" data-a="re">Otra partida</button>':''}`,{
+     l:t=>{if(over)return;const r=+t.dataset.r,c=+t.dataset.c,isH=t.dataset.t==='h',arr=isH?h:v;if(arr[r][c]>=0)return;arr[r][c]=cur;let got=0;
+      (isH?[[r-1,c],[r,c]]:[[r,c-1],[r,c]]).forEach(([a,b])=>{if(full(a,b)&&bx[a][b]<0){bx[a][b]=cur;sc[cur]++;filled++;got++}});
+      if(got){beep(880,.1);vib(30);if(filled===N*N)confetti()}else{beep(500,.04);cur=(cur+1)%nm.length}render()},
+     re:()=>{first++;game()}})};
+   render()};
+  game()}});
+
+def({id:'verdades',icon:'🤥',name:'Dos verdades y una mentira',c:'#d946ef',min:2,max:16,best:[2,8],desc:'Escribe tres frases sobre ti. ¿Cazarán cuál es la falsa?',
+ rules:`<ol><li>A quien le toca escribe en secreto dos verdades y una mentira sobre sí mismo.</li><li>La app las mezcla. El resto puede hacerle preguntas y luego elige cuál cree que es la mentira.</li><li>Si la pillan, +1 para los demás. Si cuela, +2 para quien la escribió.</li></ol>`,
+ start(){const g=this,sc=zero();let turn=0;
+  const next=()=>{const who=P()[turn%P().length];passScreen(g,who,'Vas a escribir dos verdades y una mentira sobre ti.',()=>{
+   screen(g,`<p class="lbl">Sobre ti, ${esc(who)}</p><input class="tin" id="t0" placeholder="✅ Una verdad" maxlength="90" autocomplete="off"><input class="tin" id="t1" placeholder="✅ Otra verdad" maxlength="90" autocomplete="off"><input class="tin" id="t2" placeholder="🤥 Una mentira creíble" maxlength="90" autocomplete="off"><p class="sub" id="er">La app las mezclará antes de enseñarlas.</p><button class="btn primary xl" data-a="ok">Listo · mezclar</button>`,{ok:()=>{const v=[0,1,2].map(i=>$('#t'+i).value.trim());if(v.some(x=>!x)){$('#er').textContent='⚠️ Rellena las tres frases.';return}
+     const items=shuffle(v.map((t,i)=>({t,lie:i===2})));
+     screen(g,`<div class="center"><p class="lbl">¿Cuál es la mentira de ${esc(who)}?</p><div class="opts">${items.map((it,i)=>`<button class="opt" data-a="o" data-i="${i}">${esc(it.t)}</button>`).join('')}</div><p class="sub" style="margin-top:12px">${P().length>2?'Hacedle preguntas, votad y tocad la más votada.':'Puedes hacerle preguntas antes de decidir.'}</p></div>`,{o:t=>{const ok=items[+t.dataset.i].lie;if(ok){P().forEach(p=>{if(p!==who)sc[p]++});confetti();beep(880,.2)}else{sc[who]+=2;beep(180,.3);vib(200)}turn++;
+       screen(g,`<div class="center"><h1 style="font-size:34px;margin:10px 0">${ok?'🎯 ¡Mentira pillada!':'😎 ¡Ha colado! +2 para '+esc(who)}</h1><div class="opts">${items.map(it=>`<div class="opt ${it.lie?'wrong':'good'}">${it.lie?'🤥':'✅'} ${esc(it.t)}</div>`).join('')}</div><h3 style="margin-top:14px">Marcador</h3>${boardHTML(sc)}<button class="btn primary xl" data-a="n">Siguiente: ${esc(P()[turn%P().length])}</button></div>`,{n:next})}})}})})};
+  next()}});
+
+def({id:'ahorcado',icon:'🪢',name:'Ahorcado',c:'#84cc16',min:2,max:16,best:[2,6],desc:'Escribe tu propia palabra o frase y que la adivinen letra a letra.',
+ rules:`<ol><li>A quien le toca escribe en secreto una palabra o frase (una peli, una broma vuestra…), o deja que la ponga la app.</li><li>El resto dice letras. Con 6 fallos, se pierde.</li><li>Si la adivinan, +1 para ellos. Si no, +1 para quien la escribió.</li></ol>`,
+ start(){const g=this,sc=zero(),pool=CATS.flatMap(c=>c.items);let turn=0;
+  const next=()=>{const who=P()[turn%P().length];passScreen(g,who,'Vas a escribir la palabra o frase secreta.',()=>{
+   screen(g,`<p class="lbl">Palabra o frase secreta</p><input class="tin" id="hw" placeholder="Una peli, una broma vuestra…" maxlength="40" autocomplete="off"><p class="sub" id="er">Las tildes no cuentan.</p><button class="btn primary xl" data-a="ok">Ocultar y empezar</button><button class="btn" data-a="rnd">🎲 Que la ponga la app</button>`,{ok:()=>{const w=$('#hw').value.trim().replace(/\s+/g,' ');if(!/[A-ZÑ]/.test(norm(w))){$('#er').textContent='⚠️ Escribe al menos una letra.';return}play(who,w)},rnd:()=>play(null,pool[rnd(pool.length)])})})};
+  const play=(author,word)=>{const up=word.toUpperCase(),letters=new Set(norm(word).replace(/[^A-ZÑ]/g,'')),got=new Set(),MAX=6;let fails=0,over=false,won=false;
+   const draw=()=>{const masked=up.split(' ').map(wd=>`<span>${[...wd].map(ch=>{const k=norm(ch);return !/[A-ZÑ]/.test(k)||got.has(k)||over?esc(ch):'_'}).join('')}</span>`).join('');
+    const svg=`<svg viewBox="0 0 120 130" width="140" style="stroke:#fff;stroke-width:4;fill:none;stroke-linecap:round"><path d="M10 125h70M30 125V10h50v14"/>${['<circle cx="80" cy="36" r="12"/>','<path d="M80 48v36"/>','<path d="M80 58l-16 14"/>','<path d="M80 58l16 14"/>','<path d="M80 84l-14 22"/>','<path d="M80 84l14 22"/>'].slice(0,fails).join('')}</svg>`;
+    screen(g,`<div class="center">${svg}<div class="hw">${masked}</div>${over?`<h1 style="font-size:34px;margin:10px 0">${won?'🎉 ¡Adivinada!':'💀 ¡Ahorcado!'}</h1>${author?boardHTML(sc):''}<button class="btn primary xl" data-a="n">Siguiente</button>`:`<p class="sub">Fallos: ${fails} de ${MAX}</p><div class="kb">${[...'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'].map(l=>`<button data-a="k" data-l="${l}" class="${got.has(l)?(letters.has(l)?'okk':'g'):''}">${l}</button>`).join('')}</div>`}</div>`,{
+     k:t=>{const l=t.dataset.l;if(over||got.has(l))return;got.add(l);if(letters.has(l))beep(800,.08);else{fails++;beep(180,.2);vib(80)}
+      won=[...letters].every(x=>got.has(x));if(won||fails>=MAX){over=true;turn++;if(won)confetti();if(author){if(won)P().forEach(p=>{if(p!==author)sc[p]++});else sc[author]++}}draw()},
+     n:next})};
+   draw()};
+  next()}});
+
+def({id:'tararea',icon:'🎵',name:'Tararea la canción',c:'#f43f5e',min:2,max:16,best:[2,10],desc:'Tararea canciones famosas sin decir la letra.',
+ rules:`<ol><li>Quien tararea mira la canción sin enseñarla.</li><li>La tararea o la silba <b>sin letra</b> hasta que la adivinen.</li><li>✓ si la aciertan, Pasar si no se la sabe.</li></ol>`,
+ start(){const g=this;setupScreen(g,{time:[45,60,90]},({secs})=>{const d=deck(CANCIONES);
+  timedGame(g,{seconds:secs,pick:d,card:c=>`<div class="w" style="font-size:clamp(28px,8vw,44px)">${esc(c)}</div><div class="hint">🎵 Tararea o silba, sin letra</div>`,btns:[['✓ Adivinada',1,'ok'],['Pasar',0,'no']],intro:()=>'Mira la canción sin enseñarla y tararéala sin decir la letra.'})})}});
+
+def({id:'espia',icon:'🕶️',name:'El espía',c:'#0f766e',min:3,max:16,best:[4,10],desc:'Todos saben dónde estáis menos el espía. Preguntad para cazarle.',
+ rules:`<ol><li>Todos ven el lugar secreto, salvo el espía.</li><li>Por turnos, os hacéis preguntas sobre el lugar («¿vienes mucho por aquí?»). Quien responde, pregunta al siguiente.</li><li>El grupo gana si descubre al espía. El espía gana si adivina el lugar o si acusáis a un inocente.</li></ol>`,
+ start(){const g=this,N=P().length,place=LUGARES[rnd(LUGARES.length)],spy=rnd(N);let i=0;
+  const deal=()=>{const k=i,who=P()[k];passScreen(g,who,'Mira tu papel sin que nadie lo vea.',()=>screen(g,`<div class="center">${k===spy?`<div style="font-size:90px;margin-top:20px">🕶️</div><h1 style="font-size:42px;color:var(--bad)">Eres el ESPÍA</h1><p class="sub">No sabes dónde estáis. Averígualo sin que te pillen.</p>`:`<p class="lbl" style="margin-top:20px">Estáis en</p><div class="secret">${esc(place)}</div><p class="sub">Hay un espía que no lo sabe. Descúbrele sin revelar el lugar.</p>`}<button class="btn primary xl" data-a="h">Ocultar y pasar</button></div>`,{h:()=>{i++;i<N?deal():play()}}))};
+  const play=()=>{const first=P()[rnd(N)];let on=false;
+   screen(g,`<div class="center"><h2 style="margin:10px 0">🕶️ ¿Quién es el espía?</h2><p class="sub">Empieza <b style="color:var(--yel)">${esc(first)}</b> preguntando a quien quiera.</p><div class="timer" id="tm" style="font-size:56px">5:00</div><button class="btn" data-a="t">⏱️ Empezar (5 min)</button><button class="btn primary xl" data-a="r">Revelar espía</button><p class="lbl" style="margin-top:16px">Lugares posibles</p><ul class="log">${LUGARES.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div>`,{
+    t:()=>{if(on)return;on=true;let s=300;const st=every(1000,()=>{s--;const tm=$('#tm');if(tm)tm.textContent=mmss(Math.max(0,s));if(s<=0){st();beep(200,.6,'sawtooth');vib([300,100,300])}})},
+    r:()=>{confetti();screen(g,`<div class="center"><p class="lbl" style="margin-top:20px">El espía era</p><h1 style="font-size:46px;color:var(--bad)">${esc(P()[spy])}</h1><p class="lbl" style="margin-top:20px">Estabais en</p><div class="secret">${esc(place)}</div><button class="btn primary xl" data-a="a">Otra partida</button></div>`,{a:()=>g.start()})}})};
+  deal()}});
+
+def({id:'trampa',icon:'❓',name:'La pregunta trampa',c:'#7c3aed',min:3,max:16,best:[4,10],desc:'Todos responden a la misma pregunta… menos uno, que no lo sabe.',
+ rules:`<ol><li>Cada uno lee su pregunta en secreto. Todos tienen la misma, menos una persona que tiene otra parecida <b>sin saberlo</b>.</li><li>Todos dicen su respuesta en voz alta (solo la respuesta).</li><li>Se muestra la pregunta real: cada uno justifica su respuesta y votáis quién tenía la trampa.</li></ol>`,
+ start(){const g=this,d=deck(TRAMPA);
+  const round=()=>{const N=P().length,q=d(),odd=rnd(N);let i=0;
+   const deal=()=>{const k=i,who=P()[k];passScreen(g,who,'Lee tu pregunta en secreto y piensa la respuesta.',()=>screen(g,`<div class="center"><p class="lbl" style="margin-top:10px">Tu pregunta, ${esc(who)}</p><div class="card big"><div class="txt">${esc(q[k===odd?1:0])}</div></div><p class="sub">Piensa tu respuesta y no digas nada todavía.</p><button class="btn primary xl" data-a="h">Ocultar y pasar</button></div>`,{h:()=>{i++;i<N?deal():answer()}}))};
+   const answer=()=>screen(g,`<div class="center"><div style="font-size:70px;margin-top:10px">🗣️</div><h2 style="margin:10px 0">¡Respuestas!</h2><p class="sub">Por turnos, decid solo vuestra respuesta, sin repetir la pregunta. Si hay que señalar a alguien, hacedlo a la de 3.</p><button class="btn primary xl" data-a="n">Mostrar la pregunta real</button></div>`,{n:()=>screen(g,`<div class="center"><p class="lbl">La pregunta real era</p><div class="card"><div class="txt">${esc(q[0])}</div></div><p class="sub">Alguien ha respondido a otra pregunta. Que cada uno justifique su respuesta y luego votad.</p><button class="btn primary xl" data-a="r">Revelar quién tenía la trampa</button></div>`,{r:()=>{confetti();screen(g,`<div class="center"><p class="lbl">Tenía la pregunta trampa</p><h1 style="font-size:46px;color:var(--bad)">${esc(P()[odd])}</h1><p class="lbl" style="margin-top:16px">Su pregunta era</p><div class="card"><div class="txt">${esc(q[1])}</div></div><button class="btn primary xl" data-a="a">Otra ronda</button></div>`,{a:round})}})});
+   deal()};
+  round()}});
+
+def({id:'dados',icon:'🎲',name:'Dados mentirosos',c:'#b45309',min:2,max:8,best:[3,6],desc:'Dados ocultos, apuestas y faroles. ¿Quién miente?',
+ rules:`<ol><li>Cada uno tiene 5 dados que solo ve él.</li><li>Por turnos se apuesta cuántos dados de un valor hay <b>entre todos</b>: «hay al menos tres cincos». El siguiente sube la apuesta (más cantidad o mayor valor) o dice <b>¡Mentiroso!</b></li><li>Se destapa todo: si la apuesta era cierta, pierde un dado quien dudó; si era falsa, quien la hizo.</li><li>Quien se queda sin dados, eliminado. Gana el último.</li></ol>`,
+ start(){const g=this,F=['⚀','⚁','⚂','⚃','⚄','⚅'],cnt={};P().forEach(p=>cnt[p]=5);let starter=null;
+  const alive=()=>P().filter(p=>cnt[p]>0),face=h=>h.map(x=>F[x]).join(' ');
+  const round=()=>{const pl=alive(),hands={};pl.forEach(p=>hands[p]=Array.from({length:cnt[p]},()=>rnd(6)).sort());if(!starter||!cnt[starter])starter=pl[rnd(pl.length)];let i=0;const total=pl.reduce((a,p)=>a+cnt[p],0);
+   const deal=()=>{const who=pl[i];passScreen(g,who,'Mira tus dados en secreto.',()=>screen(g,`<div class="center"><p class="lbl" style="margin-top:20px">Tus dados, ${esc(who)}</p><div class="dice">${face(hands[who])}</div><button class="btn primary xl" data-a="h">Ocultar y pasar</button></div>`,{h:()=>{i++;i<pl.length?deal():table()}}))};
+   const table=()=>screen(g,`<div class="center"><div style="font-size:60px">🎲</div><p class="sub" style="font-size:17px">Hay <b>${total}</b> dados en juego. Empieza <b style="color:var(--yel)">${esc(starter)}</b> apostando.</p><p class="lbl" style="margin-top:14px">Volver a ver mis dados</p>${pickChips(pl)}<button class="btn primary xl" data-a="lie">🤥 ¡Mentiroso! · destapar todo</button></div>`,{
+     chip:t=>{const who=pl[+t.dataset.i];screen(g,`<div class="center"><p class="lbl" style="margin-top:20px">Dados de ${esc(who)}</p><div class="dice">${face(hands[who])}</div><button class="btn primary xl" data-a="h">Ocultar</button></div>`,{h:table})},lie:reveal});
+   const reveal=()=>{const tally=[0,0,0,0,0,0];pl.forEach(p=>hands[p].forEach(x=>tally[x]++));beep(700,.2);
+    screen(g,`<div class="center"><p class="lbl">Todos los dados</p>${pl.map(p=>`<div class="drow"><span>${esc(p)}</span><span>${face(hands[p])}</span></div>`).join('')}<p class="lbl" style="margin-top:12px">Recuento</p><div class="chips">${tally.map((n,x)=>`<span class="chip" style="padding:6px 12px"><span style="font-size:22px">${F[x]}</span> × <b>${n}</b></span>`).join('')}</div><p class="lbl" style="margin-top:12px">¿Quién pierde un dado?</p>${pickChips(pl)}</div>`,{chip:t=>{const who=pl[+t.dataset.i];cnt[who]--;starter=who;vib(100);const al=alive();
+      if(al.length===1){confetti();screen(g,`<div class="center"><div style="font-size:90px;margin-top:20px">🏆</div><h1 style="font-size:44px;color:var(--yel)">¡Gana ${esc(al[0])}!</h1><button class="btn primary xl" data-a="a">Otra partida</button></div>`,{a:()=>g.start()})}else round()}})};
+   deal()};
+  round()}});
+
+def({id:'clave',icon:'🔑',name:'Palabras en clave',c:'#dc2626',min:4,max:20,best:[4,12],desc:'Dos equipos: el capitán da pistas de una palabra para encontrar las suyas.',
+ rules:`<ol><li>Dos equipos (rojo y azul), cada uno con un capitán. Solo los capitanes ven la <b>clave</b>: de qué color es cada palabra.</li><li>En su turno, el capitán dice <b>una palabra y un número</b> («mar, 2»): la pista y cuántas palabras del tablero encajan.</li><li>Su equipo toca palabras. Si es suya, sigue; si es neutral o del rival, pierde el turno.</li><li>Quien toque la <b>negra</b> pierde al instante. Gana quien destape todas las suyas.</li></ol>`,
+ start(){const g=this,NM={R:'rojo',B:'azul'},pool=[...new Set(DIBUJA.concat(...['objetos','animales','comida','prof'].map(id=>CATS.find(c=>c.id===id).items)).filter(w=>!w.includes(' ')&&w.length<=10))];
+  const game=()=>{const words=shuffle(pool.slice()).slice(0,25),st=rnd(2)?'R':'B',ot=st==='R'?'B':'R',key=shuffle([...Array(9).fill(st),...Array(8).fill(ot),...Array(7).fill('N'),'X']),open=Array(25).fill(false);let turn=st,winner='';
+   const left=t=>key.filter((k,i)=>k===t&&!open[i]).length;
+   const board=()=>screen(g,`<div class="row"><b style="color:#ff6b78">🔴 Rojo: ${left('R')}</b><b style="color:#7b9cff">🔵 Azul: ${left('B')}</b></div><p class="center" style="font-weight:800;font-size:18px;margin:8px 0">${winner?'🏆 ¡Gana el equipo '+NM[winner]+'!':(turn==='R'?'🔴':'🔵')+' Turno del equipo '+NM[turn]}</p><div class="cw">${words.map((w,i)=>`<button data-a="w" data-i="${i}" class="${open[i]||winner?key[i]:''}" ${winner&&!open[i]?'style="opacity:.55"':''}>${esc(w)}</button>`).join('')}</div>${winner?'<button class="btn primary xl" data-a="re">Otra partida</button>':'<button class="btn" data-a="pass">Pasar turno ➡️</button><button class="btn ghost" data-a="key">🔑 Ver clave (solo capitanes)</button>'}`,{
+     w:t=>{const i=+t.dataset.i;if(winner||open[i])return;open[i]=true;const k=key[i],other=turn==='R'?'B':'R';
+      if(k==='X'){winner=other;vib([300,100,300]);beep(100,.6,'sawtooth')}
+      else{if(!left('R'))winner='R';else if(!left('B'))winner='B';if(k===turn)beep(880,.1);else{beep(250,.2);if(!winner)turn=other}if(winner)confetti()}
+      board()},
+     pass:()=>{turn=turn==='R'?'B':'R';board()},re:game,
+     key:()=>screen(g,`<div class="pass"><div class="emoji">🔑</div><p>Solo para los</p><h1>Capitanes</h1><p class="sub">El resto, ¡no miréis!</p><button class="btn primary xl" data-a="ok">Ver clave</button><button class="btn ghost" data-a="b">Volver al tablero</button></div>`,{b:board,ok:()=>screen(g,`<p class="lbl center">Clave · empieza el equipo ${NM[st]}</p><div class="cw">${words.map((w,i)=>`<button class="${key[i]}" ${open[i]?'style="opacity:.35"':''}>${esc(w)}</button>`).join('')}</div><p class="sub center">Negra: pierdes al instante · Gris: neutral</p><button class="btn primary xl" data-a="b">Ocultar clave</button>`,{b:board})})});
+   board()};
+  game()}});
 
 /* ================= INICIO ================= */
 function home(){clearAll();CUR=null;const n=S.names.length,ps=P();
