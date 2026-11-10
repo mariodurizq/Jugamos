@@ -671,20 +671,6 @@ def({id:'codigo',icon:'🔐',name:'Descifra el código',c:'#10b981',min:2,max:2,
    screen(g,`<div class="center"><h1 style="font-size:38px;margin:14px 0">${ok?'🎉 ¡Descifrado en '+hist.length+'!':'🔒 ¡Código a salvo!'}</h1><p class="lbl">El código era</p><div class="slots">${code.map(c=>`<button>${COL[c]}</button>`).join('')}</div>${mode==='duo'?`<p class="stats">${esc(nm[0])} ${wins[0]} — ${wins[1]} ${esc(nm[1])}</p>`:''}<button class="btn primary xl" data-a="n">${mode==='duo'?'Cambiar papeles':'Otro código'}</button></div>`,{n:()=>{maker=1-maker;round()}})};
   screen(g,`<div class="center"><p class="lbl">¿Cómo jugáis?</p><button class="btn primary xl" data-a="duo">🆚 Uno crea, el otro descifra</button><button class="btn xl" data-a="app">🤝 La app lo crea y lo desciframos juntos</button></div>`,{duo:()=>{mode='duo';round()},app:()=>{mode='app';round()}})}});
 
-def({id:'quiz',icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,max:4,best:[2,4],desc:'Cultura general: responde quien pulse antes su botón.',
- rules:`<ol><li>Sale una pregunta con 4 opciones. Cada uno tiene su pulsador.</li><li>Quien pulse antes tiene 8 segundos para responder.</li><li>Acierto +1, fallo −1.</li></ol>`,
- start(){const g=this,sc=zero(),d=deck(QUIZ),COLS=['#ff4d5e','#3b6cf0','#22c58b','#f59e0b'];let n=0;
-  const next=()=>{const q=d(),ans=q[1][0],opts=shuffle(q[1].slice());n++;
-   const oh=(click,shown,pick)=>`<div class="opts">${opts.map((o,i)=>click?`<button class="opt" data-a="o" data-i="${i}">${esc(o)}</button>`:`<div class="opt ${shown&&o===ans?'good':shown&&pick===o?'wrong':''}">${esc(o)}</div>`).join('')}</div>`;
-   const res=(who,pick)=>{const ok=pick===ans;if(who)sc[who]+=ok?1:-1;if(ok){confetti();beep(880,.2)}else{beep(180,.3);vib(150)}
-    screen(g,`<div class="center"><h1 style="font-size:32px;margin:8px 0">${!who?'La respuesta era…':ok?'✅ ¡Correcto, '+esc(who)+'!':pick===''?'⏰ ¡Tiempo! −1 para '+esc(who):'❌ ¡Fallo! −1 para '+esc(who)}</h1><p class="lbl">${esc(q[0])}</p>${oh(false,true,pick)}<h3 style="margin-top:14px">Marcador</h3>${boardHTML(sc)}<button class="btn primary xl" data-a="n">Siguiente pregunta</button></div>`,{n:next})};
-   const answer=pi=>{const who=P()[pi];let left=8;
-    screen(g,`<div class="center"><div class="tbar"><span class="who">🔔 ${esc(who)} responde</span><span class="timer" id="tm">8</span></div><h2 class="q" style="font-size:24px">${esc(q[0])}</h2>${oh(true)}</div>`,{o:t=>{st();res(who,opts[+t.dataset.i])}});
-    const st=every(1000,()=>{left--;const tm=$('#tm');if(tm){tm.textContent=Math.max(0,left);if(left<=3)tm.classList.add('hot')}if(left<=0){st();res(who,'')}})};
-   screen(g,`<div class="center"><p class="lbl">Pregunta ${n}</p><h2 class="q" style="font-size:24px">${esc(q[0])}</h2>${oh(false,false)}<p class="sub" style="margin-top:10px">¡Pulsa tu botón si la sabes!</p><div class="buzz">${P().map((p,i)=>`<button data-p="${i}" style="background:${COLS[i]}">🔔 ${esc(p)}</button>`).join('')}</div><button class="btn ghost" data-a="x">Nadie la sabe</button></div>`,{x:()=>res(null,null)});
-   let done=false;document.querySelectorAll('.buzz button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();if(done)return;done=true;beep(900,.15);vib(40);answer(+b.dataset.p)}))};
-  next()}});
-
 def({id:'memo',icon:'🃏',name:'Parejas de memoria',c:'#a855f7',min:2,max:4,best:[2,4],desc:'Levanta dos cartas por turno y encuentra las parejas.',
  rules:`<ol><li>Por turnos, levantad dos cartas.</li><li>Si son pareja, punto y repites. Si no, se vuelven a tapar y le toca al siguiente.</li><li>Cada ronda el tablero crece: 16, 20 y 24 cartas.</li></ol>`,
  start(){const g=this,sc=zero();let lvl=0,sp=0;
@@ -795,6 +781,1417 @@ def({id:'clave',icon:'🔑',name:'Palabras en clave',c:'#dc2626',min:4,max:20,be
    board()};
   game()}});
 
+/* ================= BANCO DE PREGUNTAS DEL QUIZ ================= */
+const QZ=[];
+(()=>{
+const pairs=s=>s.trim().split('\n').map(l=>l.trim().split('|'));
+const pick3=(pool,ans)=>shuffle([...new Set(pool)].filter(x=>x!==ans)).slice(0,3);
+const addPairs=(cat,list,fq,rq)=>{const vals=list.map(p=>p[1]);list.forEach(([k,v])=>{if(fq)QZ.push([cat,fq(k),v,()=>pick3(vals,v)]);if(rq)QZ.push([cat,rq(v),k,()=>pick3(list.filter(p=>p[1]!==v).map(p=>p[0]),k)])})};
+const addFixed=(cat,arr)=>arr.forEach(([q,o])=>QZ.push([cat,q,o[0],()=>o.slice(1)]));
+const th=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const num=(cat,q,ans,offs,fmt,max)=>{fmt=fmt||String;QZ.push([cat,q,fmt(ans),()=>{const out=[];shuffle(offs.slice()).forEach(o=>{const v=ans+o;if(out.length<3&&v>0&&(!max||v<=max)&&v!==ans&&!out.includes(v))out.push(v)});return out.map(fmt)}])};
+
+/* ---------- Geografía ---------- */
+const PA=pairs(`
+Albania|Tirana|E|AL
+Alemania|Berlín|E|DE
+Andorra|Andorra la Vieja|E|AD
+Austria|Viena|E|AT
+Bélgica|Bruselas|E|BE
+Bielorrusia|Minsk|E|BY
+Bosnia y Herzegovina|Sarajevo|E|BA
+Bulgaria|Sofía|E|BG
+Chipre|Nicosia||CY
+Croacia|Zagreb|E|HR
+Dinamarca|Copenhague|E|DK
+Eslovaquia|Bratislava|E|SK
+Eslovenia|Liubliana|E|SI
+España|Madrid|E|ES
+Estonia|Tallin|E|EE
+Finlandia|Helsinki|E|FI
+Francia|París|E|FR
+Grecia|Atenas|E|GR
+Hungría|Budapest|E|HU
+Irlanda|Dublín|E|IE
+Islandia|Reikiavik|E|IS
+Italia|Roma|E|IT
+Letonia|Riga|E|LV
+Liechtenstein|Vaduz|E|LI
+Lituania|Vilna|E|LT
+Luxemburgo|Luxemburgo|E|LU
+Malta|La Valeta|E|MT
+Moldavia|Chisináu|E|MD
+Mónaco|Mónaco|E|MC
+Montenegro|Podgorica|E|ME
+Noruega|Oslo|E|NO
+Países Bajos|Ámsterdam|E|NL
+Polonia|Varsovia|E|PL
+Portugal|Lisboa|E|PT
+Reino Unido|Londres|E|GB
+República Checa|Praga|E|CZ
+Macedonia del Norte|Skopie|E|MK
+Rumanía|Bucarest|E|RO
+Rusia|Moscú||RU
+San Marino|San Marino|E|SM
+Serbia|Belgrado|E|RS
+Suecia|Estocolmo|E|SE
+Suiza|Berna|E|CH
+Ucrania|Kiev|E|UA
+Afganistán|Kabul|A|AF
+Arabia Saudí|Riad|A|SA
+Armenia|Ereván||AM
+Azerbaiyán|Bakú||AZ
+Baréin|Manama|A|BH
+Bangladés|Daca|A|BD
+Bután|Timbu|A|BT
+Camboya|Nom Pen|A|KH
+Catar|Doha|A|QA
+China|Pekín|A|CN
+Corea del Norte|Pionyang|A|KP
+Corea del Sur|Seúl|A|KR
+Emiratos Árabes Unidos|Abu Dabi|A|AE
+Filipinas|Manila|A|PH
+Georgia|Tiflis||GE
+India|Nueva Delhi|A|IN
+Indonesia||A|ID
+Irak|Bagdad|A|IQ
+Irán|Teherán|A|IR
+Israel||A|IL
+Japón|Tokio|A|JP
+Jordania|Amán|A|JO
+Kazajistán|Astaná||KZ
+Kirguistán|Biskek|A|KG
+Laos|Vientián|A|LA
+Líbano|Beirut|A|LB
+Malasia|Kuala Lumpur|A|MY
+Maldivas|Malé|A|MV
+Mongolia|Ulán Bator|A|MN
+Myanmar|Naipyidó|A|MM
+Nepal|Katmandú|A|NP
+Omán|Mascate|A|OM
+Pakistán|Islamabad|A|PK
+Singapur|Singapur|A|SG
+Siria|Damasco|A|SY
+Sri Lanka||A|LK
+Tailandia|Bangkok|A|TH
+Tayikistán|Dusambé|A|TJ
+Turkmenistán|Asjabad|A|TM
+Turquía|Ankara||TR
+Uzbekistán|Taskent|A|UZ
+Vietnam|Hanói|A|VN
+Yemen|Saná|A|YE
+Angola|Luanda|F|AO
+Argelia|Argel|F|DZ
+Benín|Porto Novo|F|BJ
+Botsuana|Gaborone|F|BW
+Burkina Faso|Uagadugú|F|BF
+Burundi|Gitega|F|BI
+Cabo Verde|Praia|F|CV
+Camerún|Yaundé|F|CM
+Chad|Yamena|F|TD
+Costa de Marfil|Yamusukro|F|CI
+Egipto|El Cairo|F|EG
+Eritrea|Asmara|F|ER
+Etiopía|Adís Abeba|F|ET
+Gabón|Libreville|F|GA
+Gambia|Banjul|F|GM
+Ghana|Acra|F|GH
+Guinea|Conakri|F|GN
+Guinea Ecuatorial|Malabo|F|GQ
+Kenia|Nairobi|F|KE
+Liberia|Monrovia|F|LR
+Libia|Trípoli|F|LY
+Madagascar|Antananarivo|F|MG
+Malaui|Lilongüe|F|MW
+Mali|Bamako|F|ML
+Marruecos|Rabat|F|MA
+Mauricio|Port Louis|F|MU
+Mauritania|Nuakchot|F|MR
+Mozambique|Maputo|F|MZ
+Namibia|Windhoek|F|NA
+Níger|Niamey|F|NE
+Nigeria|Abuya|F|NG
+República Democrática del Congo|Kinsasa|F|CD
+Ruanda|Kigali|F|RW
+Senegal|Dakar|F|SN
+Seychelles|Victoria|F|SC
+Sierra Leona|Freetown|F|SL
+Somalia|Mogadiscio|F|SO
+Sudáfrica||F|ZA
+Sudán|Jartum|F|SD
+Tanzania|Dodoma|F|TZ
+Togo|Lomé|F|TG
+Túnez|Túnez|F|TN
+Uganda|Kampala|F|UG
+Zambia|Lusaka|F|ZM
+Zimbabue|Harare|F|ZW
+Argentina|Buenos Aires|M|AR
+Bahamas|Nasáu|M|BS
+Barbados|Bridgetown|M|BB
+Belice|Belmopán|M|BZ
+Bolivia||M|BO
+Brasil|Brasilia|M|BR
+Canadá|Ottawa|M|CA
+Chile|Santiago|M|CL
+Colombia|Bogotá|M|CO
+Costa Rica|San José|M|CR
+Cuba|La Habana|M|CU
+Ecuador|Quito|M|EC
+El Salvador|San Salvador|M|SV
+Estados Unidos|Washington D. C.|M|US
+Guatemala|Ciudad de Guatemala|M|GT
+Guyana|Georgetown|M|GY
+Haití|Puerto Príncipe|M|HT
+Honduras|Tegucigalpa|M|HN
+Jamaica|Kingston|M|JM
+México|Ciudad de México|M|MX
+Nicaragua|Managua|M|NI
+Panamá|Ciudad de Panamá|M|PA
+Paraguay|Asunción|M|PY
+Perú|Lima|M|PE
+República Dominicana|Santo Domingo|M|DO
+Surinam|Paramaribo|M|SR
+Trinidad y Tobago|Puerto España|M|TT
+Uruguay|Montevideo|M|UY
+Venezuela|Caracas|M|VE
+Australia|Canberra|O|AU
+Fiyi|Suva|O|FJ
+Nueva Zelanda|Wellington|O|NZ
+Papúa Nueva Guinea|Port Moresby|O|PG
+Samoa|Apia|O|WS
+Tonga|Nukualofa|O|TO`);
+const CONT={E:'Europa',A:'Asia',F:'África',M:'América',O:'Oceanía'},names=PA.map(p=>p[0]);
+const caps=PA.filter(p=>p[1]&&p[1]!==p[0]),capNames=caps.map(p=>p[1]);
+caps.forEach(([n,c])=>{QZ.push(['Geografía',`¿Cuál es la capital de ${n}?`,c,()=>pick3(capNames,c)]);if(!c.includes(n))QZ.push(['Geografía',`¿De qué país es capital ${c}?`,n,()=>pick3(caps.map(p=>p[0]),n)])});
+PA.forEach(([n,c,k,iso])=>{if(k)QZ.push(['Geografía',`¿En qué continente está ${n}?`,CONT[k],()=>pick3(Object.values(CONT),CONT[k])]);
+ const flag=String.fromCodePoint(...[...iso].map(ch=>0x1F1A5+ch.charCodeAt(0)));QZ.push(['Banderas',`¿De qué país es esta bandera?  ${flag}`,n,()=>pick3(PA.filter(p=>p[2]===k||!k).map(p=>p[0]),n)])});
+const PROV={'Andalucía':'Almería,Cádiz,Córdoba,Granada,Huelva,Jaén,Málaga,Sevilla','Aragón':'Huesca,Teruel,Zaragoza','Canarias':'Las Palmas,Santa Cruz de Tenerife','Castilla-La Mancha':'Albacete,Ciudad Real,Cuenca,Guadalajara,Toledo','Castilla y León':'Ávila,Burgos,Palencia,Salamanca,Segovia,Soria,Valladolid,Zamora','Cataluña':'Barcelona,Girona,Lleida,Tarragona','Comunidad Valenciana':'Alicante,Castellón','Extremadura':'Badajoz,Cáceres','Galicia':'A Coruña,Lugo,Ourense,Pontevedra','País Vasco':'Álava,Guipúzcoa,Vizcaya'};
+const CCAA=Object.keys(PROV).concat(['Murcia','Navarra','La Rioja','Asturias','Cantabria','Madrid']);
+Object.entries(PROV).forEach(([ca,ps])=>ps.split(',').forEach(p=>QZ.push(['Geografía',`¿En qué comunidad autónoma está la provincia de ${p}?`,ca,()=>pick3(CCAA,ca)])));
+addPairs('Geografía',pairs(`
+Andalucía|Sevilla
+Aragón|Zaragoza
+Asturias|Oviedo
+Baleares|Palma
+Cantabria|Santander
+Castilla-La Mancha|Toledo
+Extremadura|Mérida
+Galicia|Santiago de Compostela
+La Rioja|Logroño
+Navarra|Pamplona
+País Vasco|Vitoria`),k=>`¿Cuál es la capital de ${k}?`);
+addPairs('Geografía',pairs(`
+onubense|Huelva
+gaditano|Cádiz
+pacense|Badajoz
+turolense|Teruel
+oscense|Huesca
+jiennense|Jaén
+salmantino|Salamanca
+vallisoletano|Valladolid
+conquense|Cuenca
+abulense|Ávila
+burgalés|Burgos
+lucense|Lugo
+donostiarra|San Sebastián
+ilicitano|Elche
+bilbilitano|Calatayud
+emeritense|Mérida
+complutense|Alcalá de Henares
+tarraconense|Tarragona
+ilerdense|Lleida
+gerundense|Girona
+ovetense|Oviedo
+hispalense|Sevilla
+egabrense|Cabra
+accitano|Guadix
+mirobrigense|Ciudad Rodrigo
+lisboeta|Lisboa
+carioca|Río de Janeiro
+porteño|Buenos Aires
+tapatío|Guadalajara (México)`),k=>`¿De dónde es alguien «${k}»?`);
+addPairs('Geografía',pairs(`
+Japón|yen
+China|yuan
+Corea del Sur|won
+Rusia|rublo
+Brasil|real
+India|rupia
+Reino Unido|libra esterlina
+Suiza|franco
+Polonia|esloti (złoty)
+Hungría|forinto
+Suecia|corona
+Turquía|lira
+Israel|séquel (shekel)
+Sudáfrica|rand
+Tailandia|baht
+Vietnam|dong
+Perú|sol
+Venezuela|bolívar
+Guatemala|quetzal
+Costa Rica|colón
+Paraguay|guaraní
+Honduras|lempira
+Nicaragua|córdoba
+Panamá|balboa
+Marruecos|dírham
+Arabia Saudí|riyal
+Ucrania|grivna
+Rumanía|leu
+Malasia|ringgit
+Kenia|chelín
+Nigeria|naira
+Etiopía|birr
+Ghana|cedi
+Kazajistán|tengue
+Mongolia|tugrik
+Bangladés|taka
+Camboya|riel
+Laos|kip
+Myanmar|kiat
+Albania|lek
+Serbia|dinar
+Georgia|lari
+Armenia|dram
+Angola|kwanza
+Zambia|kwacha
+Haití|gourde`),k=>`¿Cuál es la moneda de ${k}?`);
+addPairs('Geografía',pairs(`
+París|Sena
+Londres|Támesis
+Roma|Tíber
+Viena|Danubio
+Budapest|Danubio
+Belgrado|Danubio
+El Cairo|Nilo
+Sevilla|Guadalquivir
+Córdoba|Guadalquivir
+Zaragoza|Ebro
+Logroño|Ebro
+Toledo|Tajo
+Lisboa|Tajo
+Aranjuez|Tajo
+Oporto|Duero
+Zamora|Duero
+Soria|Duero
+Valladolid|Pisuerga
+Madrid|Manzanares
+Bilbao|Nervión
+Salamanca|Tormes
+Mérida|Guadiana
+Badajoz|Guadiana
+Valencia|Turia
+Murcia|Segura
+Florencia|Arno
+Praga|Moldava
+Berlín|Spree
+Colonia|Rin
+Nueva York|Hudson
+Bagdad|Tigris
+Moscú|Moscova
+Burgos|Arlanzón
+Pamplona|Arga
+Ourense|Miño
+Dublín|Liffey
+Varsovia|Vístula
+Kiev|Dniéper
+Lyon|Ródano`),k=>`¿Qué río pasa por ${k}?`);
+addFixed('Geografía',[
+['¿En qué ciudad está el Coliseo?',['Roma','Atenas','Nápoles','Estambul']],
+['¿En qué país está el Taj Mahal?',['India','Pakistán','Irán','Nepal']],
+['¿En qué ciudad está la Estatua de la Libertad?',['Nueva York','Washington D. C.','Boston','San Francisco']],
+['¿En qué ciudad española está la Alhambra?',['Granada','Córdoba','Sevilla','Málaga']],
+['¿En qué ciudad está la Mezquita-Catedral?',['Córdoba','Granada','Sevilla','Toledo']],
+['¿En qué ciudad está el acueducto romano más famoso de España?',['Segovia','Mérida','Tarragona','Ávila']],
+['¿En qué ciudad española está el Museo Guggenheim?',['Bilbao','San Sebastián','Valencia','Barcelona']],
+['¿En qué ciudad está la Giralda?',['Sevilla','Córdoba','Cádiz','Granada']],
+['¿En qué ciudad está la Torre de Hércules?',['A Coruña','Vigo','Gijón','Cádiz']],
+['¿En qué ciudad está la basílica del Pilar?',['Zaragoza','Burgos','León','Valencia']],
+['¿Cuál es el lago más profundo del mundo?',['Baikal','Titicaca','Victoria','Superior']],
+['¿Cuál es el río más caudaloso del mundo?',['Amazonas','Nilo','Misisipi','Congo']],
+['¿Cuál es el país más pequeño del mundo?',['Ciudad del Vaticano','Mónaco','San Marino','Andorra']],
+['¿Cuál es la isla más grande del mundo?',['Groenlandia','Madagascar','Borneo','Gran Bretaña']],
+['¿Cuál es la isla más grande de España?',['Mallorca','Tenerife','Gran Canaria','Menorca']],
+['¿Cuál es la cascada más alta del mundo?',['Salto Ángel','Cataratas del Niágara','Cataratas Victoria','Cataratas del Iguazú']],
+['¿Qué estrecho separa España de Marruecos?',['Gibraltar','Bósforo','Ormuz','Magallanes']],
+['¿Qué cordillera separa España de Francia?',['Pirineos','Alpes','Picos de Europa','Apeninos']],
+['¿En qué país está la ciudad de Petra?',['Jordania','Egipto','Siria','Líbano']],
+['¿En qué país está Angkor Wat?',['Camboya','Tailandia','Vietnam','Laos']],
+['¿Qué país tiene más husos horarios contando sus territorios?',['Francia','Rusia','Estados Unidos','China']],
+['¿Cuál es el mar interior más grande del mundo?',['Mar Caspio','Mar Muerto','Mar Negro','Mar de Aral']],
+['¿En qué océano está Madagascar?',['Índico','Atlántico','Pacífico','Ártico']],
+['¿Cuál es la cordillera más larga del mundo?',['Los Andes','El Himalaya','Las Rocosas','Los Alpes']]
+]);
+
+/* ---------- Ciencia ---------- */
+const EL=('H|Hidrógeno,He|Helio,Li|Litio,Be|Berilio,B|Boro,C|Carbono,N|Nitrógeno,O|Oxígeno,F|Flúor,Ne|Neón,Na|Sodio,Mg|Magnesio,Al|Aluminio,Si|Silicio,P|Fósforo,S|Azufre,Cl|Cloro,Ar|Argón,K|Potasio,Ca|Calcio,Sc|Escandio,Ti|Titanio,V|Vanadio,Cr|Cromo,Mn|Manganeso,Fe|Hierro,Co|Cobalto,Ni|Níquel,Cu|Cobre,Zn|Zinc,Ga|Galio,Ge|Germanio,As|Arsénico,Se|Selenio,Br|Bromo,Kr|Kriptón,Rb|Rubidio,Sr|Estroncio,Y|Itrio,Zr|Circonio,Nb|Niobio,Mo|Molibdeno,Tc|Tecnecio,Ru|Rutenio,Rh|Rodio,Pd|Paladio,Ag|Plata,Cd|Cadmio,In|Indio,Sn|Estaño,Sb|Antimonio,Te|Telurio,I|Yodo,Xe|Xenón,Cs|Cesio,Ba|Bario,La|Lantano,Ce|Cerio,Nd|Neodimio,Eu|Europio,W|Wolframio,Os|Osmio,Ir|Iridio,Pt|Platino,Au|Oro,Hg|Mercurio,Pb|Plomo,Bi|Bismuto,Po|Polonio,Rn|Radón,Fr|Francio,Ra|Radio,Th|Torio,U|Uranio,Pu|Plutonio,Am|Americio,Cm|Curio,Es|Einstenio').split(',').map(x=>x.split('|'));
+addPairs('Ciencia',EL,k=>`¿Qué elemento químico tiene el símbolo «${k}»?`,v=>`¿Cuál es el símbolo químico de este elemento: ${v}?`);
+EL.slice(0,36).forEach(([s,n],i)=>QZ.push(['Ciencia',`¿Qué elemento tiene el número atómico ${i+1}?`,n,()=>pick3(EL.slice(Math.max(0,i-6),i+7).map(e=>e[1]),n)]));
+const CLS=pairs(`
+delfín|mamífero
+ballena|mamífero
+murciélago|mamífero
+ornitorrinco|mamífero
+canguro|mamífero
+koala|mamífero
+foca|mamífero
+orca|mamífero
+manatí|mamífero
+pingüino|ave
+avestruz|ave
+kiwi|ave
+tiburón|pez
+caballito de mar|pez
+anguila|pez
+raya|pez
+salamandra|anfibio
+rana|anfibio
+sapo|anfibio
+tritón|anfibio
+ajolote|anfibio
+cocodrilo|reptil
+tortuga|reptil
+serpiente|reptil
+camaleón|reptil
+iguana|reptil
+araña|arácnido
+escorpión|arácnido
+garrapata|arácnido
+hormiga|insecto
+mariposa|insecto
+abeja|insecto
+escarabajo|insecto
+mosquito|insecto
+pulpo|molusco
+caracol|molusco
+calamar|molusco
+mejillón|molusco
+cangrejo|crustáceo
+gamba|crustáceo
+langosta|crustáceo
+percebe|crustáceo
+estrella de mar|equinodermo
+erizo de mar|equinodermo`);
+addPairs('Ciencia',CLS,k=>`¿Qué tipo de animal es: ${k}?`);
+addPairs('Ciencia',pairs(`
+la oveja|cordero
+la vaca|ternero
+el caballo|potro
+el cerdo|lechón
+la cabra|cabrito
+el conejo|gazapo
+el ciervo|cervatillo
+el jabalí|jabato
+el lobo|lobezno
+el oso|osezno
+la liebre|lebrato
+la paloma|pichón
+el águila|aguilucho
+la rana|renacuajo
+la perdiz|perdigón
+la ballena|ballenato
+el burro|pollino
+la anguila|angula`),k=>`¿Cómo se llama la cría de ${k}?`);
+addPairs('Ciencia',pairs(`
+el perro|ladra
+el gato|maúlla
+el caballo|relincha
+la vaca|muge
+la oveja|bala
+el cerdo|gruñe
+el lobo|aúlla
+el león|ruge
+el burro|rebuzna
+el elefante|barrita
+el pollito|pía
+el cuervo|grazna
+la rana|croa
+la gallina|cacarea
+la paloma|arrulla
+la serpiente|sisea
+la abeja|zumba
+el búho|ulula
+el ciervo|berrea`),k=>`¿Qué hace ${k} cuando emite su sonido?`);
+addPairs('Ciencia',pairs(`
+la bombilla incandescente comercial|Thomas Edison
+la patente del teléfono|Alexander Graham Bell
+la imprenta de tipos móviles en Europa|Johannes Gutenberg
+la penicilina|Alexander Fleming
+el polonio y el radio|Marie Curie
+la ley de la gravitación universal|Isaac Newton
+la teoría de la evolución por selección natural|Charles Darwin
+la vacuna contra la rabia|Louis Pasteur
+la dinamita|Alfred Nobel
+el primer avión a motor|los hermanos Wright
+la World Wide Web|Tim Berners-Lee
+el modelo heliocéntrico moderno|Nicolás Copérnico
+las leyes de la herencia genética|Gregor Mendel
+el submarino torpedero español de 1888|Isaac Peral
+el autogiro|Juan de la Cierva
+la tabla periódica|Dmitri Mendeléyev
+la pila eléctrica|Alessandro Volta
+la mejora decisiva de la máquina de vapor|James Watt
+la telegrafía sin hilos|Guglielmo Marconi
+el pararrayos|Benjamin Franklin
+la vacuna de la viruela|Edward Jenner
+el psicoanálisis|Sigmund Freud
+la doctrina de la neurona|Santiago Ramón y Cajal
+la teoría de la relatividad|Albert Einstein
+el principio de flotación («¡Eureka!»)|Arquímedes
+los rayos X|Wilhelm Röntgen
+el motor diésel|Rudolf Diesel
+el cinematógrafo|los hermanos Lumière
+Microsoft|Bill Gates
+Facebook|Mark Zuckerberg
+Amazon|Jeff Bezos
+Zara|Amancio Ortega`),k=>`¿A quién se atribuye: ${k}?`);
+addFixed('Ciencia',[
+['¿Cuál es la fórmula química del agua?',['H₂O','CO₂','O₂','H₂O₂']],
+['¿Cuál es la fórmula de la sal común?',['NaCl','KCl','NaOH','HCl']],
+['¿A qué temperatura hierve el agua a nivel del mar?',['100 °C','90 °C','120 °C','80 °C']],
+['¿Cuántos planetas tiene el sistema solar?',['8','7','9','10']],
+['¿Qué planeta se conoce como «el planeta rojo»?',['Marte','Venus','Júpiter','Mercurio']],
+['¿Qué planeta tiene los anillos más visibles?',['Saturno','Júpiter','Urano','Neptuno']],
+['¿Cuál es la estrella más cercana a la Tierra?',['El Sol','Sirio','Alfa Centauri','La Estrella Polar']],
+['¿Cuánto tarda la luz del Sol en llegar a la Tierra?',['Unos 8 minutos','Unos 8 segundos','Una hora','Un día']],
+['¿Cuál es la velocidad aproximada de la luz?',['300.000 km/s','30.000 km/s','3.000 km/s','300.000 km/h']],
+['¿Cuántos cromosomas tiene una célula humana normal?',['46','23','48','44']],
+['¿Qué grupo sanguíneo es el donante universal?',['O negativo','AB positivo','A positivo','B negativo']],
+['¿Cuál es el gas más abundante en la atmósfera?',['Nitrógeno','Oxígeno','Dióxido de carbono','Argón']],
+['¿Qué parte de la célula contiene la mayor parte del ADN?',['El núcleo','La membrana','El ribosoma','El citoplasma']],
+['¿Cuántos dientes tiene un adulto con las muelas del juicio?',['32','28','30','36']],
+['¿Qué órgano produce la insulina?',['Páncreas','Hígado','Riñón','Bazo']],
+['¿Cómo se llama el miedo a los espacios cerrados?',['Claustrofobia','Agorafobia','Aracnofobia','Acrofobia']],
+['¿Qué mide la escala de Richter?',['Terremotos','Huracanes','Temperatura','Ruido']],
+['¿Qué unidad mide la resistencia eléctrica?',['Ohmio','Voltio','Amperio','Vatio']],
+['¿Qué unidad mide la potencia?',['Vatio','Julio','Newton','Voltio']],
+['¿Qué unidad mide la fuerza?',['Newton','Pascal','Julio','Vatio']],
+['¿Cuántos bits tiene un byte?',['8','4','16','10']],
+['¿Cuál es el hueso más pequeño del cuerpo humano?',['Estribo','Yunque','Martillo','Falange']],
+['¿Cuántas cámaras tiene el corazón humano?',['4','2','3','6']],
+['¿Cuál es el animal terrestre más alto?',['Jirafa','Elefante','Avestruz','Camello']],
+['¿Cuál es el ave más grande del mundo?',['Avestruz','Cóndor','Albatros','Emú']],
+['¿Cuál es el ave más pequeña del mundo?',['Colibrí','Gorrión','Canario','Jilguero']],
+['¿En qué planeta un día dura más que un año?',['Venus','Mercurio','Marte','Júpiter']],
+['¿A cuántos grados Fahrenheit se congela el agua?',['32','0','100','212']],
+['¿Qué científica ganó el Nobel en dos ciencias distintas?',['Marie Curie','Rosalind Franklin','Ada Lovelace','Lise Meitner']],
+['¿Cuál es el metal más abundante en la corteza terrestre?',['Aluminio','Hierro','Cobre','Oro']],
+['¿De qué elemento está hecho el diamante?',['Carbono','Silicio','Calcio','Cuarzo']],
+['¿Cuál es el planeta más caliente del sistema solar?',['Venus','Mercurio','Marte','Júpiter']],
+['¿Cuántas lunas tiene Marte?',['2','0','1','4']],
+['¿Cómo se llama nuestra galaxia?',['Vía Láctea','Andrómeda','Magallanes','Orión']],
+['¿Qué vitamina abunda en los cítricos?',['C','A','D','K']],
+['¿Qué es un año luz?',['Una distancia','Un tiempo','Una velocidad','Un brillo']],
+['¿Qué planeta es el más pequeño del sistema solar?',['Mercurio','Marte','Venus','Neptuno']],
+['¿Qué célula de la sangre transporta el oxígeno?',['Glóbulo rojo','Glóbulo blanco','Plaqueta','Neurona']],
+['¿Qué instrumento mide la presión atmosférica?',['Barómetro','Termómetro','Anemómetro','Higrómetro']],
+['¿Qué instrumento mide la velocidad del viento?',['Anemómetro','Barómetro','Sismógrafo','Pluviómetro']]
+]);
+
+/* ---------- Mates ---------- */
+const M='Mates';
+for(let a=3;a<=12;a++)for(let b=Math.max(a,6);b<=15;b++)num(M,`¿Cuánto es ${a} × ${b}?`,a*b,[a,-a,b,-b,10,-10,1,-1,2,-2]);
+[13,14,16,17,18,19,23,25,35].forEach(a=>[3,4,6,7,8,9].forEach(b=>num(M,`¿Cuánto es ${a} × ${b}?`,a*b,[b,-b,10,-10,a,-a,2,-2])));
+for(let a=11;a<=25;a++){num(M,`¿Cuánto es ${a} al cuadrado?`,a*a,[a,-a,10,-10,20,-20,1,-1]);num(M,`¿Cuál es la raíz cuadrada de ${a*a}?`,a,[1,-1,2,-2,3,-3])}
+for(let a=2;a<=10;a++)num(M,`¿Cuánto es ${a} al cubo?`,a*a*a,[a,-a,a*a,-a*a,10,-10,1,-1],th);
+[5,10,15,20,25,30,50,75].forEach(p=>[40,60,80,120,200,240,360,500].forEach(n=>{const r=p*n/100;num(M,`¿Cuánto es el ${p} % de ${n}?`,r,[r>20?10:1,r>20?-10:-1,r>20?5:2,r>20?-5:-2,Math.round(r/2),r])}));
+[27,38,46,59,67,78,85,94].forEach(a=>[15,26,37,48,69].forEach(b=>{num(M,`¿Cuánto es ${a} + ${b}?`,a+b,[10,-10,1,-1,2,-2,11,-9]);num(M,`¿Cuánto es ${a+b+100} − ${b}?`,a+100,[10,-10,1,-1,2,-2,11,-9])}));
+const rom=n=>{let r='';[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']].forEach(([v,s])=>{while(n>=v){r+=s;n-=v}});return r};
+[4,9,14,19,24,29,39,40,44,49,66,88,90,99,150,250,333,400,444,500,555,777,888,900,999,1066,1212,1492,1789,1808,1900,1936,1969,1978,1999,2000,2010,2026].forEach(n=>{const o=n<100?[1,-1,2,-2,5,-5,10,-10]:[1,-1,10,-10,100,-100,50,-50,5,-5];num(M,`¿Cómo se escribe ${n} en números romanos?`,n,o,rom);num(M,`¿Qué número es ${rom(n)} en romanos?`,n,o)});
+[[1.5,1500],[2.5,2500],[3.2,3200],[4.8,4800],[7.5,7500],[0.5,500],[0.25,250],[12,12000]].forEach(([k,m])=>num(M,`¿Cuántos metros son ${String(k).replace('.',',')} km?`,m,[m*9,m/10*9,-m/2,m,m/2].map(Math.round),x=>th(x)+' m'));
+[[1.5,90],[2,120],[2.5,150],[3,180],[4.5,270],[6,360]].forEach(([h,m])=>num(M,`¿Cuántos minutos son ${String(h).replace('.',',')} horas?`,m,[30,-30,60,-60,15,-15]));
+[[2,120],[3,180],[5,300],[10,600],[15,900],[45,2700]].forEach(([m,s])=>num(M,`¿Cuántos segundos son ${m} minutos?`,s,[60,-60,s,100,-100,-s/2],th));
+[[2,48],[3,72],[5,120],[7,168],[10,240]].forEach(([d,h])=>num(M,`¿Cuántas horas son ${d} días?`,h,[12,-12,24,-24,10,-10]));
+[[2,14],[3,21],[4,28],[6,42],[8,56],[10,70]].forEach(([w,d])=>num(M,`¿Cuántos días son ${w} semanas?`,d,[7,-7,1,-1,2,-2]));
+[[3,180],[4,360],[5,540],[6,720],[8,1080]].forEach(([l,s])=>num(M,`¿Cuánto suman los ángulos interiores de un polígono de ${l} lados?`,s,[180,-180,90,-90,360],x=>x+'°'));
+
+/* ---------- Historia ---------- */
+pairs(`
+El descubrimiento de América por Colón|1492
+La toma de la Bastilla (Revolución francesa)|1789
+La caída del Muro de Berlín|1989
+El final de la Segunda Guerra Mundial|1945
+El inicio de la Primera Guerra Mundial|1914
+El final de la Primera Guerra Mundial|1918
+El inicio de la Guerra Civil española|1936
+El final de la Guerra Civil española|1939
+La aprobación de la Constitución española vigente|1978
+La muerte de Franco|1975
+La entrada de España en la Comunidad Económica Europea|1986
+Los Juegos Olímpicos de Barcelona|1992
+El hundimiento del Titanic|1912
+La llegada del ser humano a la Luna|1969
+Los atentados del 11-S|2001
+La caída de Constantinopla|1453
+La caída del Imperio romano de Occidente|476
+La independencia de Estados Unidos|1776
+La batalla de Waterloo|1815
+La Revolución rusa|1917
+La Constitución de Cádiz («la Pepa»)|1812
+La batalla de Lepanto|1571
+La derrota de la Armada Invencible|1588
+La batalla de las Navas de Tolosa|1212
+El inicio de la conquista musulmana de la península ibérica|711
+La batalla de Trafalgar|1805
+El levantamiento del 2 de mayo en Madrid|1808
+La pérdida de Cuba y Filipinas|1898
+La proclamación de la Segunda República española|1931
+El intento de golpe de Estado del 23-F|1981
+La llegada de los billetes y monedas de euro|2002
+El lanzamiento del Sputnik|1957
+El asesinato de John F. Kennedy|1963
+El accidente de Chernóbil|1986
+La disolución de la Unión Soviética|1991
+El crac de la Bolsa de Nueva York|1929
+El primer vuelo de los hermanos Wright|1903
+La publicación de la primera parte del Quijote|1605
+La publicación de «El origen de las especies»|1859
+La coronación imperial de Carlomagno|800
+La Carta Magna inglesa|1215
+El Tratado de Tordesillas|1494
+El final de la primera vuelta al mundo (Elcano)|1522
+La Paz de Westfalia|1648
+El Tratado de Utrecht|1713
+La unificación de Alemania|1871
+La fundación de la ONU|1945
+La firma del Tratado de Roma|1957
+La construcción del Muro de Berlín|1961
+El Mayo francés|1968
+La presentación del primer iPhone|2007
+La fundación de Google|1998
+La fundación de Facebook|2004
+El primer Mundial de fútbol|1930
+Los primeros Juegos Olímpicos modernos|1896
+El Mundial de fútbol de España|1982
+Los atentados del 11-M en Madrid|2004
+La muerte de Isabel II de Inglaterra|2022
+El referéndum del Brexit|2016
+La proclamación de Felipe VI|2014
+La presentación de la oveja Dolly|1997
+La erupción del Vesubio que sepultó Pompeya|79
+La llegada de la peste negra a Europa|1347
+Las 95 tesis de Lutero|1517
+La independencia de la India|1947
+La elección de Nelson Mandela como presidente|1994
+El triunfo de la Revolución cubana|1959
+El primer trasplante de corazón|1967
+El descubrimiento de la penicilina|1928
+El matrimonio de los Reyes Católicos|1469
+La muerte de Isabel la Católica|1504
+El traslado de la corte a Madrid por Felipe II|1561
+La inauguración del Metro de Madrid|1919
+La inauguración del canal de Panamá|1914
+La inauguración del canal de Suez|1869
+La inauguración de la Torre Eiffel|1889
+La primera proyección pública de los Lumière|1895
+Las primeras emisiones regulares de TVE|1956
+La fundación del Real Madrid|1902
+La fundación del FC Barcelona|1899
+La abolición de la esclavitud en Estados Unidos|1865
+La bomba atómica sobre Hiroshima|1945
+La Exposición Universal de Sevilla|1992
+La declaración de la pandemia de COVID-19|2020`).forEach(([e,y])=>num('Historia',`${e}: ¿en qué año?`,+y,[-50,-25,-12,-10,-7,-5,-3,-2,2,3,5,7,10,12,25,50],String,2026));
+addFixed('Historia',[
+['¿Quién fue el primer emperador romano?',['Augusto','Julio César','Nerón','Trajano']],
+['¿Qué civilización construyó Machu Picchu?',['Inca','Azteca','Maya','Olmeca']],
+['¿Quién fue el primer presidente de Estados Unidos?',['George Washington','Abraham Lincoln','Thomas Jefferson','Benjamin Franklin']],
+['¿Qué reina financió el primer viaje de Colón?',['Isabel la Católica','Juana I','Isabel II','María Tudor']],
+['¿Qué emperador francés fue derrotado en Waterloo?',['Napoleón Bonaparte','Luis XVI','Napoleón III','Carlomagno']],
+['¿Quién fue el primer rey de la dinastía Borbón en España?',['Felipe V','Carlos III','Fernando VII','Felipe II']],
+['¿Qué emperador romano nacido en Hispania llevó el Imperio a su máxima extensión?',['Trajano','Adriano','Nerón','Augusto']],
+['¿Quién fue el primer ser humano en viajar al espacio?',['Yuri Gagarin','Neil Armstrong','Buzz Aldrin','John Glenn']],
+['¿Quién fue la primera persona en pisar la Luna?',['Neil Armstrong','Buzz Aldrin','Yuri Gagarin','Michael Collins']],
+['¿Qué civilización construyó las pirámides de Guiza?',['Egipcia','Mesopotámica','Griega','Persa']],
+['¿Qué muro dividió una capital europea entre 1961 y 1989?',['El Muro de Berlín','La Línea Maginot','El Telón de Acero','El Muro de Adriano']],
+['¿Quién conquistó el Imperio azteca?',['Hernán Cortés','Francisco Pizarro','Pedro de Alvarado','Núñez de Balboa']],
+['¿Quién conquistó el Imperio inca?',['Francisco Pizarro','Hernán Cortés','Diego de Almagro','Pedro de Valdivia']],
+['¿Qué navegante completó la primera vuelta al mundo?',['Juan Sebastián Elcano','Cristóbal Colón','Vasco da Gama','Américo Vespucio']],
+['¿Qué rey español era conocido como «el Prudente»?',['Felipe II','Carlos I','Felipe IV','Alfonso X']],
+['¿Qué rey español era conocido como «el Sabio»?',['Alfonso X','Felipe II','Fernando III','Jaime I']],
+['¿En qué ciudad fue asesinado el archiduque Francisco Fernando?',['Sarajevo','Viena','Belgrado','Budapest']],
+['¿Qué líder indio encabezó la independencia por la no violencia?',['Mahatma Gandhi','Jawaharlal Nehru','Indira Gandhi','Rabindranath Tagore']]
+]);
+
+/* ---------- Arte y cultura ---------- */
+const AC='Arte y cultura';
+addPairs(AC,pairs(`
+La Celestina|Fernando de Rojas
+La casa de Bernarda Alba|Federico García Lorca
+Luces de bohemia|Ramón María del Valle-Inclán
+La Regenta|Leopoldo Alas «Clarín»
+Fortunata y Jacinta|Benito Pérez Galdós
+La colmena|Camilo José Cela
+Nada|Carmen Laforet
+El árbol de la ciencia|Pío Baroja
+Niebla|Miguel de Unamuno
+Campos de Castilla|Antonio Machado
+Platero y yo|Juan Ramón Jiménez
+La vida es sueño|Calderón de la Barca
+Fuenteovejuna|Lope de Vega
+El Buscón|Francisco de Quevedo
+Rimas y leyendas|Gustavo Adolfo Bécquer
+Don Juan Tenorio|José Zorrilla
+La sombra del viento|Carlos Ruiz Zafón
+El capitán Alatriste|Arturo Pérez-Reverte
+Los pilares de la Tierra|Ken Follett
+La catedral del mar|Ildefonso Falcones
+El tiempo entre costuras|María Dueñas
+Patria|Fernando Aramburu
+Cien años de soledad|Gabriel García Márquez
+Crónica de una muerte anunciada|Gabriel García Márquez
+La ciudad y los perros|Mario Vargas Llosa
+Rayuela|Julio Cortázar
+La casa de los espíritus|Isabel Allende
+Pedro Páramo|Juan Rulfo
+Ficciones|Jorge Luis Borges
+El Aleph|Jorge Luis Borges
+Veinte poemas de amor y una canción desesperada|Pablo Neruda
+Como agua para chocolate|Laura Esquivel
+Hamlet|William Shakespeare
+Romeo y Julieta|William Shakespeare
+La Odisea|Homero
+La Ilíada|Homero
+La Divina Comedia|Dante Alighieri
+Los miserables|Victor Hugo
+Madame Bovary|Gustave Flaubert
+El conde de Montecristo|Alexandre Dumas
+Los tres mosqueteros|Alexandre Dumas
+Veinte mil leguas de viaje submarino|Julio Verne
+La vuelta al mundo en ochenta días|Julio Verne
+El principito|Antoine de Saint-Exupéry
+El extranjero|Albert Camus
+Crimen y castigo|Fiódor Dostoievski
+Guerra y paz|León Tolstói
+Anna Karénina|León Tolstói
+La metamorfosis|Franz Kafka
+Fausto|Johann Wolfgang von Goethe
+Orgullo y prejuicio|Jane Austen
+Oliver Twist|Charles Dickens
+Frankenstein|Mary Shelley
+Drácula|Bram Stoker
+Cumbres borrascosas|Emily Brontë
+Alicia en el país de las maravillas|Lewis Carroll
+La isla del tesoro|Robert Louis Stevenson
+Estudio en escarlata|Arthur Conan Doyle
+El retrato de Dorian Gray|Oscar Wilde
+1984|George Orwell
+Un mundo feliz|Aldous Huxley
+El señor de los anillos|J. R. R. Tolkien
+El hobbit|J. R. R. Tolkien
+Harry Potter y la piedra filosofal|J. K. Rowling
+Las crónicas de Narnia|C. S. Lewis
+El gran Gatsby|F. Scott Fitzgerald
+El viejo y el mar|Ernest Hemingway
+Matar a un ruiseñor|Harper Lee
+El guardián entre el centeno|J. D. Salinger
+Moby Dick|Herman Melville
+Las aventuras de Tom Sawyer|Mark Twain
+Fahrenheit 451|Ray Bradbury
+It|Stephen King
+El código Da Vinci|Dan Brown
+Juego de tronos|George R. R. Martin
+Los juegos del hambre|Suzanne Collins
+El nombre de la rosa|Umberto Eco
+El perfume|Patrick Süskind
+El alquimista|Paulo Coelho
+Ensayo sobre la ceguera|José Saramago
+Asesinato en el Orient Express|Agatha Christie
+Robinson Crusoe|Daniel Defoe
+Los viajes de Gulliver|Jonathan Swift
+Ulises|James Joyce
+En busca del tiempo perdido|Marcel Proust
+Dune|Frank Herbert
+Yo, robot|Isaac Asimov
+Los hombres que no amaban a las mujeres|Stieg Larsson
+La historia interminable|Michael Ende
+Charlie y la fábrica de chocolate|Roald Dahl
+Pippi Calzaslargas|Astrid Lindgren
+El origen de las especies|Charles Darwin
+El príncipe|Nicolás Maquiavelo
+El capital|Karl Marx
+La riqueza de las naciones|Adam Smith
+Así habló Zaratustra|Friedrich Nietzsche
+La República|Platón`),k=>`¿Quién escribió «${k}»?`,v=>`¿Cuál de estas obras escribió ${v}?`);
+addPairs(AC,pairs(`
+La Gioconda|Leonardo da Vinci
+La última cena|Leonardo da Vinci
+El Guernica|Pablo Picasso
+Las señoritas de Avignon|Pablo Picasso
+La persistencia de la memoria|Salvador Dalí
+La noche estrellada|Vincent van Gogh
+Los girasoles|Vincent van Gogh
+El grito|Edvard Munch
+La joven de la perla|Johannes Vermeer
+La ronda de noche|Rembrandt
+El jardín de las delicias|El Bosco
+Las Meninas|Diego Velázquez
+La rendición de Breda|Diego Velázquez
+Los fusilamientos del 3 de mayo|Francisco de Goya
+La maja desnuda|Francisco de Goya
+Saturno devorando a su hijo|Francisco de Goya
+El entierro del conde de Orgaz|El Greco
+El caballero de la mano en el pecho|El Greco
+El nacimiento de Venus|Sandro Botticelli
+Los frescos de la bóveda de la Capilla Sixtina|Miguel Ángel
+La escuela de Atenas|Rafael
+La libertad guiando al pueblo|Eugène Delacroix
+Impresión, sol naciente|Claude Monet
+El beso (1908)|Gustav Klimt
+Las tres Gracias (Museo del Prado)|Rubens
+Paseo a orillas del mar|Joaquín Sorolla
+La gran ola de Kanagawa|Hokusai
+Las latas de sopa Campbell|Andy Warhol
+Las dos Fridas|Frida Kahlo
+American Gothic|Grant Wood
+El hijo del hombre|René Magritte
+El carnaval de Arlequín|Joan Miró
+Baile en el Moulin de la Galette|Pierre-Auguste Renoir
+Los jugadores de cartas|Paul Cézanne
+El matrimonio Arnolfini|Jan van Eyck
+La balsa de la Medusa|Théodore Géricault
+La escultura «El pensador»|Auguste Rodin
+La Sagrada Familia|Antoni Gaudí`),k=>`¿Quién es el autor de: ${k}?`,v=>`¿Cuál de estas obras es de ${v}?`);
+addPairs(AC,pairs(`
+Titanic|James Cameron
+Avatar|James Cameron
+Tiburón|Steven Spielberg
+E.T., el extraterrestre|Steven Spielberg
+Jurassic Park|Steven Spielberg
+La lista de Schindler|Steven Spielberg
+La guerra de las galaxias (1977)|George Lucas
+El Padrino|Francis Ford Coppola
+Apocalypse Now|Francis Ford Coppola
+Pulp Fiction|Quentin Tarantino
+Kill Bill|Quentin Tarantino
+Psicosis|Alfred Hitchcock
+Los pájaros|Alfred Hitchcock
+2001: Una odisea del espacio|Stanley Kubrick
+El resplandor|Stanley Kubrick
+Origen|Christopher Nolan
+Interstellar|Christopher Nolan
+Oppenheimer|Christopher Nolan
+Taxi Driver|Martin Scorsese
+Uno de los nuestros|Martin Scorsese
+Gladiator|Ridley Scott
+Alien, el octavo pasajero|Ridley Scott
+Blade Runner|Ridley Scott
+El Señor de los Anillos: La Comunidad del Anillo|Peter Jackson
+Forrest Gump|Robert Zemeckis
+Regreso al futuro|Robert Zemeckis
+Matrix|las hermanas Wachowski
+El club de la lucha|David Fincher
+Seven|David Fincher
+Eduardo Manostijeras|Tim Burton
+El laberinto del fauno|Guillermo del Toro
+La forma del agua|Guillermo del Toro
+Todo sobre mi madre|Pedro Almodóvar
+Volver|Pedro Almodóvar
+Mujeres al borde de un ataque de nervios|Pedro Almodóvar
+Los otros|Alejandro Amenábar
+Abre los ojos|Alejandro Amenábar
+Mar adentro|Alejandro Amenábar
+Lo imposible|J. A. Bayona
+La sociedad de la nieve|J. A. Bayona
+El día de la bestia|Álex de la Iglesia
+Torrente, el brazo tonto de la ley|Santiago Segura
+Ocho apellidos vascos|Emilio Martínez-Lázaro
+Campeones|Javier Fesser
+Celda 211|Daniel Monzón
+La isla mínima|Alberto Rodríguez
+Bienvenido, Mister Marshall|Luis García Berlanga
+Viridiana|Luis Buñuel
+Parásitos|Bong Joon-ho
+El viaje de Chihiro|Hayao Miyazaki
+La vida es bella|Roberto Benigni
+Amélie|Jean-Pierre Jeunet
+Gravity|Alfonso Cuarón
+El renacido|Alejandro González Iñárritu
+Barbie|Greta Gerwig
+La La Land|Damien Chazelle
+Ciudadano Kane|Orson Welles
+Casablanca|Michael Curtiz
+El gran dictador|Charles Chaplin
+Annie Hall|Woody Allen
+Braveheart|Mel Gibson
+Million Dollar Baby|Clint Eastwood`),k=>`¿Quién dirigió «${k}»?`,v=>`¿Cuál de estas películas dirigió ${v}?`);
+addPairs(AC,pairs(`
+Bohemian Rhapsody|Queen
+We Are the Champions|Queen
+Imagine|John Lennon
+Thriller|Michael Jackson
+Billie Jean|Michael Jackson
+Like a Virgin|Madonna
+Smells Like Teen Spirit|Nirvana
+Hey Jude|The Beatles
+Yesterday|The Beatles
+(I Can't Get No) Satisfaction|The Rolling Stones
+Stairway to Heaven|Led Zeppelin
+Hotel California|Eagles
+Another Brick in the Wall|Pink Floyd
+Sweet Child o' Mine|Guns N' Roses
+Highway to Hell|AC/DC
+Purple Rain|Prince
+Dancing Queen|ABBA
+Like a Rolling Stone|Bob Dylan
+Wonderwall|Oasis
+Viva la Vida|Coldplay
+Rolling in the Deep|Adele
+Shape of You|Ed Sheeran
+Bad Guy|Billie Eilish
+Shake It Off|Taylor Swift
+Single Ladies|Beyoncé
+Umbrella|Rihanna
+Poker Face|Lady Gaga
+Lose Yourself|Eminem
+Hips Don't Lie|Shakira
+Despacito|Luis Fonsi
+Gasolina|Daddy Yankee
+Livin' la Vida Loca|Ricky Martin
+Macarena|Los del Río
+Aserejé|Las Ketchup
+Corazón partío|Alejandro Sanz
+La chica de ayer|Nacha Pop
+Mediterráneo|Joan Manuel Serrat
+Entre dos aguas|Paco de Lucía
+Soldadito marinero|Fito & Fitipaldis
+Zapatillas|El Canto del Loco
+20 de abril|Celtas Cortos
+La flaca|Jarabe de Palo
+Sin documentos|Los Rodríguez
+Maldito duende|Héroes del Silencio
+Cadillac solitario|Loquillo
+Devuélveme a mi chica|Hombres G
+Rosas|La Oreja de Van Gogh
+Malamente|Rosalía
+Bulería|David Bisbal
+Color esperanza|Diego Torres
+La camisa negra|Juanes
+Vivir mi vida|Marc Anthony
+Bailando|Enrique Iglesias
+Clandestino|Manu Chao
+Resistiré|Dúo Dinámico
+Eres tú|Mocedades
+Un beso y una flor|Nino Bravo
+Como una ola|Rocío Jurado
+Y nos dieron las diez|Joaquín Sabina
+Princesas|Pereza
+Pájaros de barro|Manolo García
+A quién le importa|Alaska y Dinarama
+Tusa|Karol G
+Hawái|Maluma
+Dákiti|Bad Bunny
+Thunderstruck|AC/DC
+Under the Bridge|Red Hot Chili Peppers
+Creep|Radiohead
+Zombie|The Cranberries
+Wannabe|Spice Girls
+...Baby One More Time|Britney Spears
+Blinding Lights|The Weeknd
+With or Without You|U2
+Every Breath You Take|The Police
+Take On Me|a-ha
+The Final Countdown|Europe
+Eye of the Tiger|Survivor
+I Will Survive|Gloria Gaynor
+Y.M.C.A.|Village People
+Stayin' Alive|Bee Gees
+No Woman, No Cry|Bob Marley
+Volare|Domenico Modugno
+My Way|Frank Sinatra
+Hallelujah|Leonard Cohen
+Space Oddity|David Bowie
+Rocket Man|Elton John`),k=>`¿Quién hizo famosa la canción «${k}»?`,v=>`¿Cuál de estas canciones es de ${v}?`);
+addFixed(AC,[
+['¿En qué museo está el Guernica?',['Museo Reina Sofía','Museo del Prado','Museo Thyssen','Museo del Louvre']],
+['¿En qué museo está La Gioconda?',['Louvre','Prado','Uffizi','British Museum']],
+['¿En qué museo están Las Meninas?',['Museo del Prado','Museo Reina Sofía','Louvre','Museo Thyssen']],
+['¿Cuántas notas musicales hay en la escala natural?',['7','5','8','12']],
+['¿Qué compositor escribió la Novena Sinfonía con el «Himno de la alegría»?',['Beethoven','Mozart','Bach','Chopin']],
+['¿Quién compuso «Las cuatro estaciones»?',['Vivaldi','Bach','Mozart','Verdi']],
+['¿Quién compuso «La flauta mágica»?',['Mozart','Beethoven','Wagner','Haydn']],
+['¿Qué arquitecto diseñó la Casa Batlló?',['Antoni Gaudí','Santiago Calatrava','Rafael Moneo','Norman Foster']],
+['¿De qué país es originario el flamenco?',['España','Portugal','Argentina','México']],
+['¿De qué país es originario el tango?',['Argentina','España','Cuba','Brasil']],
+['¿Qué instrumento tocaba Paco de Lucía?',['Guitarra','Piano','Violín','Cajón']],
+['¿Cuántas cuerdas tiene un violín?',['4','5','6','3']]
+]);
+
+/* ---------- Deportes ---------- */
+const DP='Deportes';
+addPairs(DP,pairs(`
+1930|Uruguay
+1934|Italia
+1938|Italia
+1950|Uruguay
+1954|Alemania
+1958|Brasil
+1962|Brasil
+1966|Inglaterra
+1970|Brasil
+1974|Alemania
+1978|Argentina
+1982|Italia
+1986|Argentina
+1990|Alemania
+1994|Brasil
+1998|Francia
+2002|Brasil
+2006|Italia
+2010|España
+2014|Alemania
+2018|Francia
+2022|Argentina`),k=>`¿Qué selección ganó el Mundial de fútbol masculino de ${k}?`);
+addPairs(DP,pairs(`
+1930|Uruguay
+1934|Italia
+1938|Francia
+1950|Brasil
+1954|Suiza
+1958|Suecia
+1962|Chile
+1966|Inglaterra
+1970|México
+1974|Alemania
+1978|Argentina
+1982|España
+1986|México
+1990|Italia
+1994|Estados Unidos
+1998|Francia
+2002|Corea del Sur y Japón
+2006|Alemania
+2010|Sudáfrica
+2014|Brasil
+2018|Rusia
+2022|Catar`),k=>`¿Dónde se jugó el Mundial de fútbol de ${k}?`);
+addPairs(DP,pairs(`
+1896|Atenas
+1900|París
+1936|Berlín
+1948|Londres
+1952|Helsinki
+1956|Melbourne
+1960|Roma
+1964|Tokio
+1968|Ciudad de México
+1972|Múnich
+1976|Montreal
+1980|Moscú
+1984|Los Ángeles
+1988|Seúl
+1992|Barcelona
+1996|Atlanta
+2000|Sídney
+2004|Atenas
+2008|Pekín
+2012|Londres
+2016|Río de Janeiro
+2024|París`),k=>`¿Qué ciudad acogió los Juegos Olímpicos de verano de ${k}?`);
+addPairs(DP,pairs(`
+1960|Unión Soviética
+1964|España
+1968|Italia
+1972|Alemania
+1976|Checoslovaquia
+1980|Alemania
+1984|Francia
+1988|Países Bajos
+1992|Dinamarca
+1996|Alemania
+2000|Francia
+2004|Grecia
+2008|España
+2012|España
+2016|Portugal
+2020|Italia
+2024|España`),k=>`¿Qué selección ganó la Eurocopa de ${k}?`);
+addPairs(DP,pairs(`
+Rafa Nadal|tenis
+Novak Djokovic|tenis
+Roger Federer|tenis
+Serena Williams|tenis
+Garbiñe Muguruza|tenis
+Pau Gasol|baloncesto
+Ricky Rubio|baloncesto
+Michael Jordan|baloncesto
+LeBron James|baloncesto
+Fernando Alonso|Fórmula 1
+Lewis Hamilton|Fórmula 1
+Max Verstappen|Fórmula 1
+Marc Márquez|motociclismo
+Valentino Rossi|motociclismo
+Miguel Induráin|ciclismo
+Alberto Contador|ciclismo
+Tadej Pogačar|ciclismo
+Carolina Marín|bádminton
+Mireia Belmonte|natación
+Michael Phelps|natación
+Jon Rahm|golf
+Tiger Woods|golf
+Sergio García|golf
+Usain Bolt|atletismo
+Eliud Kipchoge|atletismo
+Simone Biles|gimnasia
+Nadia Comaneci|gimnasia
+Gervasio Deferr|gimnasia
+Muhammad Ali|boxeo
+Mike Tyson|boxeo
+Tom Brady|fútbol americano
+Lionel Messi|fútbol
+Alexia Putellas|fútbol
+Ilia Topuria|artes marciales mixtas
+Saúl Craviotto|piragüismo
+Lydia Valentín|halterofilia
+Javier Fernández|patinaje artístico
+Magnus Carlsen|ajedrez
+Tony Hawk|skate
+Kelly Slater|surf
+Joel González|taekwondo
+Ona Carbonell|natación artística`),k=>`¿En qué deporte destaca o destacó ${k}?`);
+addFixed(DP,[
+['¿Cuántos jugadores tiene en el campo un equipo de fútbol?',['11','10','12','9']],
+['¿Cuántos jugadores tiene en pista un equipo de voleibol?',['6','5','7','4']],
+['¿Cuántos jugadores tiene en el campo un equipo de rugby union?',['15','13','11','12']],
+['¿Cuántos jugadores tiene en pista un equipo de balonmano?',['7','6','5','8']],
+['¿Cuánto dura el tiempo reglamentario de un partido de fútbol?',['90 minutos','80 minutos','100 minutos','120 minutos']],
+['¿Cuántos kilómetros tiene una maratón?',['42,195','40','45,5','38,2']],
+['¿Cuántos puntos vale un triple en baloncesto?',['3','2','4','1']],
+['¿En qué deporte se usa un volante en vez de pelota?',['Bádminton','Tenis','Squash','Pádel']],
+['¿Qué torneo de tenis se juega sobre hierba?',['Wimbledon','Roland Garros','US Open','Open de Australia']],
+['¿Qué torneo de tenis se juega sobre tierra batida?',['Roland Garros','Wimbledon','US Open','Open de Australia']],
+['¿De qué color es el maillot del líder del Tour de Francia?',['Amarillo','Rojo','Rosa','Verde']],
+['¿De qué color es el maillot del líder del Giro de Italia?',['Rosa','Amarillo','Rojo','Azul']],
+['¿De qué color es el maillot del líder de la Vuelta a España?',['Rojo','Amarillo','Rosa','Verde']],
+['¿Cuántos hoyos tiene un recorrido completo de golf?',['18','9','12','20']],
+['¿En qué ciudad juega sus partidos como local el Athletic Club?',['Bilbao','San Sebastián','Vitoria','Pamplona']],
+['¿En qué deporte hay un «scrum» o melé?',['Rugby','Balonmano','Hockey','Waterpolo']],
+['¿Cada cuántos años se celebran los Juegos Olímpicos de verano?',['4','2','5','3']],
+['¿Cuántos sets debe ganar un hombre para vencer en un partido de Grand Slam?',['3','2','4','5']]
+]);
+
+/* ---------- Lengua ---------- */
+const LG='Lengua';
+addPairs(LG,pairs(`
+alegre|contento
+veloz|rápido
+hermoso|bello
+iniciar|comenzar
+finalizar|terminar
+enfadado|furioso
+valiente|audaz
+ayudar|auxiliar
+delgado|flaco
+ebrio|borracho
+morada|vivienda
+cabello|pelo
+docente|profesor
+automóvil|coche
+regresar|volver
+obsequio|regalo
+abundante|copioso
+efímero|pasajero
+diáfano|transparente
+lóbrego|tenebroso
+inaudito|insólito
+ufano|orgulloso
+taciturno|callado
+locuaz|hablador
+huraño|arisco
+indemne|ileso
+pulcro|limpio
+mendaz|mentiroso
+nimio|insignificante
+acaudalado|rico
+indigente|pobre
+dilapidar|derrochar
+mitigar|aliviar
+soslayar|evitar
+aseverar|afirmar
+vaticinar|predecir
+menoscabar|perjudicar
+zanjar|resolver
+dilucidar|aclarar
+enmendar|corregir
+hurtar|robar
+desdén|desprecio
+albor|amanecer
+ocaso|atardecer
+algarabía|bullicio
+congoja|angustia
+júbilo|alegría`),k=>`¿Cuál es un sinónimo de «${k}»?`);
+addPairs(LG,pairs(`
+alto|bajo
+claro|oscuro
+lleno|vacío
+abrir|cerrar
+frío|caliente
+rápido|lento
+fuerte|débil
+rico|pobre
+amor|odio
+guerra|paz
+verdad|mentira
+entrada|salida
+comprar|vender
+ganar|perder
+reír|llorar
+aceptar|rechazar
+ancho|estrecho
+áspero|suave
+valiente|cobarde
+generoso|tacaño
+humilde|soberbio
+efímero|eterno
+opaco|transparente
+cóncavo|convexo
+premio|castigo
+éxito|fracaso
+orden|caos
+aliado|enemigo
+antes|después
+principio|final
+húmedo|seco
+pesado|ligero
+joven|anciano
+despierto|dormido
+culpable|inocente
+victoria|derrota
+optimista|pesimista
+público|privado
+máximo|mínimo
+nacer|morir
+recordar|olvidar
+construir|destruir
+atacar|defender
+ausente|presente
+urbano|rural
+antiguo|moderno
+escasez|abundancia`),k=>`¿Cuál es el antónimo de «${k}»?`);
+`exhausto|exausto|exhasto|esausto
+zanahoria|zanaoria|sanahoria|zanahória
+excelente|exelente|escelente|eccelente
+huésped|guésped|huéspet|uésped
+exhibir|exibir|exhivir|esibir
+inhalar|inalar|hinalar|inhalár
+vaho|bao|baho|vao
+almohada|almoada|halmoada|almohadda
+cohete|coete|cohéte|kohete
+prohibir|proibir|prohivir|proivir
+bienvenido|bienbenido|vienvenido|biemvenido
+ojalá|ogalá|hojalá|ojala
+exuberante|exhuberante|exuverante|esuberante
+idiosincrasia|idiosincracia|ideosincrasia|idiosingracia
+espontáneo|expontáneo|espontaneo|espóntaneo
+inflación|inflacción|imflación|inflasión
+discreción|discrección|discresión|discrecíon
+prever|preveer|prebér|preber
+trastorno|transtorno|trastórno|trastonro
+esparadrapo|esparatrapo|espadrapo|esparadrápo
+cónyuge|cónyugue|cónjuge|cónyuje
+convalecencia|convalescencia|combalecencia|convalecensia
+desahuciar|desauciar|deshauciar|desahuziar
+exhaustivo|exaustivo|exhaustibo|esaustivo
+hibernar|ivernar|hivernar|hibérnar
+a través|através|a travéz|atravez
+a veces|aveces|a vezes|a beces
+rehén|reén|rehen|rreén
+vehículo|veículo|vehiculo|behículo
+búho|buho|bujo|vúho
+enhorabuena|enorabuena|henorabuena|enhorabuhena
+anécdota|anégdota|anecdota|anédcota
+helicóptero|elicóptero|helicoptero|helicótero
+abogado|avogado|abogádo|habogado
+obvio|ovbio|obbio|ovio
+subrayar|subrrayar|sub-rayar|surayar
+víbora|bívora|vívora|bíbora
+herbívoro|hervíboro|herbíboro|erbívoro
+garaje|garage|garáje|garague
+extranjero|estranjero|extrangero|estrangero
+cirugía|cirujía|sirugía|cirugia
+jirafa|girafa|jirafha|xirafa
+berenjena|berengena|verenjena|berenjéna
+crujir|crugir|cruhir|krujir
+tejer|teger|tejér|tejher
+coger|cojer|cogér|koger`.split('\n').forEach(l=>{const o=l.split('|');QZ.push([LG,'¿Cuál de estas formas está bien escrita?',o[0],()=>o.slice(1)])});
+
+/* ---------- Inglés ---------- */
+addPairs('Inglés',pairs(`
+lawyer|abogado
+library|biblioteca
+bookshop|librería
+carpet|alfombra
+folder|carpeta
+embarrassed|avergonzado
+pregnant|embarazada
+constipated|estreñido
+sensible|sensato
+sensitive|sensible
+actually|en realidad
+currently|actualmente
+eventually|finalmente
+success|éxito
+exit|salida
+rope|cuerda
+clothes|ropa
+soap|jabón
+soup|sopa
+to realize|darse cuenta
+to record|grabar
+to remember|recordar
+to attend|asistir
+to pretend|fingir
+to support|apoyar
+large|grande
+long|largo
+fabric|tela
+factory|fábrica
+knot|nudo
+knee|rodilla
+elbow|codo
+shoulder|hombro
+ankle|tobillo
+wrist|muñeca
+eyebrow|ceja
+eyelash|pestaña
+chin|barbilla
+cheek|mejilla
+forehead|frente
+thumb|pulgar
+nail|uña
+lung|pulmón
+liver|hígado
+kidney|riñón
+owl|búho
+squirrel|ardilla
+hedgehog|erizo
+seagull|gaviota
+butterfly|mariposa
+dragonfly|libélula
+ladybird|mariquita
+bee|abeja
+wasp|avispa
+spider|araña
+frog|rana
+toad|sapo
+deer|ciervo
+sheep|oveja
+goat|cabra
+pumpkin|calabaza
+cucumber|pepino
+aubergine|berenjena
+garlic|ajo
+onion|cebolla
+pea|guisante
+chickpea|garbanzo
+lentil|lenteja
+peach|melocotón
+plum|ciruela
+grape|uva
+raisin|pasa
+strawberry|fresa
+pineapple|piña
+watermelon|sandía
+cherry|cereza
+fork|tenedor
+spoon|cuchara
+knife|cuchillo
+frying pan|sartén
+pot|olla
+oven|horno
+fridge|nevera
+sink|fregadero
+towel|toalla
+pillow|almohada
+blanket|manta
+sheet|sábana
+ceiling|techo
+roof|tejado
+stairs|escaleras
+lift|ascensor
+umbrella|paraguas
+scarf|bufanda
+glove|guante
+belt|cinturón
+sock|calcetín
+skirt|falda
+thunder|trueno
+lightning|rayo
+fog|niebla
+hail|granizo
+rainbow|arcoíris
+wedding|boda
+nephew|sobrino
+niece|sobrina
+cousin|primo
+uncle|tío
+son-in-law|yerno
+mother-in-law|suegra
+stepmother|madrastra
+neighbour|vecino
+mayor|alcalde
+judge|juez
+plumber|fontanero
+nurse|enfermero
+carpenter|carpintero
+butcher|carnicero
+baker|panadero
+hairdresser|peluquero
+firefighter|bombero`),k=>`¿Qué significa en inglés «${k}»?`,v=>`¿Cómo se dice «${v}» en inglés?`);
+
+/* ---------- General ---------- */
+addFixed('General',QUIZ);
+addFixed('General',[
+['¿Cuántas casillas tiene un tablero de ajedrez?',['64','48','72','81']],
+['¿Cuánto suman las caras opuestas de un dado?',['7','6','8','5']],
+['¿Cuántos días tiene un año bisiesto?',['366','365','364','367']],
+['¿En qué ciudad está el Big Ben?',['Londres','Edimburgo','Dublín','Mánchester']],
+['¿En qué país están las pirámides de Guiza?',['Egipto','México','Sudán','Perú']],
+['¿Cuántos signos tiene el zodiaco?',['12','10','13','14']],
+['¿Cuántas letras tiene el abecedario español?',['27','26','28','29']],
+['¿De qué color es la caja negra de los aviones?',['Naranja','Negra','Amarilla','Roja']],
+['¿Cuántos años son un lustro?',['5','10','50','25']],
+['¿Cuántos años son un siglo?',['100','50','1.000','10']],
+['¿Qué se celebra en España el 12 de octubre?',['La Fiesta Nacional','El Día de la Constitución','El Día del Trabajo','Todos los Santos']],
+['¿Qué se celebra en España el 6 de diciembre?',['El Día de la Constitución','La Inmaculada','La Fiesta Nacional','San Nicolás']],
+['¿Cuál es el patrón de Madrid?',['San Isidro','San Antonio','San Fermín','Santiago']],
+['¿Cuántos colores tiene un semáforo de coches?',['3','2','4','5']],
+['¿Qué animal aparece en el escudo de Madrid junto al madroño?',['Un oso','Un león','Un toro','Un águila']],
+['¿Cuántas uvas se toman en Nochevieja?',['12','10','6','24']],
+['¿En qué mes empieza el otoño en España?',['Septiembre','Octubre','Agosto','Noviembre']],
+['¿Cuántos minutos tiene un día?',['1.440','1.240','1.640','2.400']],
+['¿Qué número romano representa la letra «L»?',['50','100','500','5']],
+['¿Cuál es el ingrediente principal del guacamole?',['Aguacate','Tomate','Pepino','Guisante']],
+['¿De qué fruto se obtiene el aceite de oliva?',['Aceituna','Girasol','Almendra','Uva']],
+['¿De qué animal procede el jamón ibérico?',['Cerdo','Vaca','Cordero','Jabalí']],
+['¿Cuál es el ingrediente principal del hummus?',['Garbanzos','Lentejas','Berenjena','Habas']],
+['¿Qué cereal es la base del sushi?',['Arroz','Trigo','Maíz','Cebada']],
+['¿De qué país es originaria la pizza?',['Italia','Grecia','Estados Unidos','Francia']],
+['¿Qué bebida se obtiene de la fermentación de la uva?',['Vino','Cerveza','Sidra','Sake']],
+['¿De qué fruta se hace la sidra?',['Manzana','Pera','Uva','Membrillo']],
+['¿Qué red social tiene un pájaro azul en su logotipo histórico?',['Twitter','Facebook','Instagram','Telegram']],
+['¿Qué empresa fabrica el iPhone?',['Apple','Samsung','Google','Nokia']],
+['¿Cuántos lados tiene un octógono?',['8','6','10','12']]
+]);
+})();
+const QZ_ICON={'Geografía':'🌍','Banderas':'🏳️','Ciencia':'🔬','Mates':'🧮','Historia':'🏛️','Arte y cultura':'🎨','Deportes':'⚽','Lengua':'📚','Inglés':'🇬🇧','General':'💡'};
+
+def({id:'quiz',icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,max:4,best:[2,4],desc:'Miles de preguntas en 10 categorías: responde quien pulse antes.',
+ rules:`<ol><li>Elegid categoría (o mezcla). Sale una pregunta con 4 opciones y cada uno tiene su pulsador.</li><li>Quien pulse antes tiene 8 segundos para responder.</li><li>Acierto +1, fallo −1.</li></ol><p>Hay ${th2(QZ.length)} preguntas y las respuestas incorrectas cambian cada vez.</p>`,
+ start(){const g=this,sc=zero(),COLS=['#ff4d5e','#3b6cf0','#22c58b','#f59e0b'],cats=[...new Set(QZ.map(q=>q[0]))],decks={};cats.forEach(c=>decks[c]=deck(QZ.filter(q=>q[0]===c)));let n=0,cat='mix';
+  const next=()=>{const it=decks[cat==='mix'?cats[rnd(cats.length)]:cat](),q=[it[1]],ans=it[2],opts=shuffle([ans,...it[3]()]);n++;
+   const oh=(click,shown,pick)=>`<div class="opts">${opts.map((o,i)=>click?`<button class="opt" data-a="o" data-i="${i}">${esc(o)}</button>`:`<div class="opt ${shown&&o===ans?'good':shown&&pick===o?'wrong':''}">${esc(o)}</div>`).join('')}</div>`;
+   const res=(who,pick)=>{const ok=pick===ans;if(who)sc[who]+=ok?1:-1;if(ok){confetti();beep(880,.2)}else{beep(180,.3);vib(150)}
+    screen(g,`<div class="center"><h1 style="font-size:32px;margin:8px 0">${!who?'La respuesta era…':ok?'✅ ¡Correcto, '+esc(who)+'!':pick===''?'⏰ ¡Tiempo! −1 para '+esc(who):'❌ ¡Fallo! −1 para '+esc(who)}</h1><p class="lbl">${esc(q[0])}</p>${oh(false,true,pick)}<h3 style="margin-top:14px">Marcador</h3>${boardHTML(sc)}<button class="btn primary xl" data-a="n">Siguiente pregunta</button><button class="btn ghost" data-a="c">Cambiar categoría</button></div>`,{n:next,c:choose})};
+   const answer=pi=>{const who=P()[pi];let left=8;
+    screen(g,`<div class="center"><div class="tbar"><span class="who">🔔 ${esc(who)} responde</span><span class="timer" id="tm">8</span></div><h2 class="q" style="font-size:24px">${esc(q[0])}</h2>${oh(true)}</div>`,{o:t=>{st();res(who,opts[+t.dataset.i])}});
+    const st=every(1000,()=>{left--;const tm=$('#tm');if(tm){tm.textContent=Math.max(0,left);if(left<=3)tm.classList.add('hot')}if(left<=0){st();res(who,'')}})};
+   screen(g,`<div class="center"><p class="lbl">Pregunta ${n} · ${QZ_ICON[it[0]]||''} ${it[0]}</p><h2 class="q" style="font-size:24px">${esc(q[0])}</h2>${oh(false,false)}<p class="sub" style="margin-top:10px">¡Pulsa tu botón si la sabes!</p><div class="buzz">${P().map((p,i)=>`<button data-p="${i}" style="background:${COLS[i]}">🔔 ${esc(p)}</button>`).join('')}</div><button class="btn ghost" data-a="x">Nadie la sabe</button></div>`,{x:()=>res(null,null)});
+   let done=false;document.querySelectorAll('.buzz button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();if(done)return;done=true;beep(900,.15);vib(40);answer(+b.dataset.p)}))};
+  const choose=()=>screen(g,`<p class="lbl">Categoría · ${th2(QZ.length)} preguntas</p><div class="cats">${cats.map(c=>`<button data-a="cat" data-id="${c}" class="${c===cat?'on':''}">${QZ_ICON[c]||''} ${c}<br><small style="opacity:.7">${th2(QZ.filter(q=>q[0]===c).length)}</small></button>`).join('')}</div><button class="btn ${cat==='mix'?'primary':''}" data-a="cat" data-id="mix">🎲 Mezcla de todo</button><button class="btn primary xl" data-a="go" style="margin-top:16px">¡Empezar!</button>`,{cat:t=>{cat=t.dataset.id;choose()},go:next});
+  choose()}});
+function th2(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+(()=>{const i=GAMES.findIndex(g=>g.id==='quiz'),j=GAMES.map(g=>g.id).lastIndexOf('quiz');if(i!==j)GAMES.splice(i,1,GAMES.splice(j,1)[0])})();
 /* ================= INICIO ================= */
 function home(){clearAll();CUR=null;const n=S.names.length,ps=P();
  const ok=GAMES.filter(g=>n>=g.min&&n<=g.max),best=ok.filter(g=>n>=g.best[0]&&n<=g.best[1]),also=ok.filter(g=>!best.includes(g)),no=GAMES.filter(g=>!ok.includes(g));
