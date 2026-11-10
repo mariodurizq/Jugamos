@@ -143,7 +143,7 @@ canvas#cv{width:100%;height:calc(100vh - 330px);min-height:280px;background:#fff
 .c4 .win{box-shadow:0 0 0 4px #fff}
 .dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-1px;margin-right:6px}
 /* reflejos */
-.duel{display:grid;grid-template-rows:1fr 1fr;gap:10px;height:calc(100vh - 110px)}
+.duel{display:grid;grid-template-rows:1fr 1fr;gap:10px;height:calc(100dvh - 130px)}
 .half{border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--card);border:1px solid var(--line);user-select:none;-webkit-user-select:none;touch-action:manipulation;padding:10px}
 .half.top{transform:rotate(180deg)}
 .half h3{font-size:30px}
@@ -178,7 +178,7 @@ canvas#cv{width:100%;height:calc(100vh - 330px);min-height:280px;background:#fff
 .nv{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:12px 0}
 .nv button,.nv div{aspect-ratio:1;border-radius:8px;background:#12356b;font-size:16px;display:flex;align-items:center;justify-content:center;color:#7d9bd1}
 .nv .ship{background:#9db0d1}.nv .miss{background:#0b1f42}.nv .hit{background:#ff9a5c}.nv .sunk{background:var(--bad)}
-canvas#hk{width:100%;height:calc(100vh - 110px);min-height:420px;touch-action:none;border-radius:22px;display:block;background:#0b1030;border:1px solid var(--line)}
+canvas#hk{width:100%;height:calc(100dvh - 130px);min-height:420px;touch-action:none;border-radius:22px;display:block;background:#0b1030;border:1px solid var(--line)}
 .slots{display:flex;justify-content:center;gap:8px;margin:14px 0}
 .slots button{font-size:38px;width:60px;height:60px;border-radius:16px;background:var(--card);line-height:1}
 .slots.pal2{gap:6px}.slots.pal2 button{font-size:30px;width:50px;height:50px}
@@ -207,6 +207,19 @@ canvas#hk{width:100%;height:calc(100vh - 110px);min-height:420px;touch-action:no
 .cw{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:10px 0}
 .cw button{aspect-ratio:1.2;border-radius:10px;background:#e9e4d4;color:#222;font-weight:800;font-size:10.5px;padding:2px;overflow:hidden;word-break:break-word;line-height:1.1}
 .cw .R{background:#e23c4b;color:#fff}.cw .B{background:#3b6cf0;color:#fff}.cw .N{background:#8a8570;color:#fff}.cw .X{background:#111;color:#fff;outline:1px solid #555}
+.dm{display:grid;grid-template-columns:repeat(8,1fr);border-radius:12px;overflow:hidden;margin:12px 0;border:3px solid #3b2a1c}
+.dm button{aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;font-size:15px;line-height:1}
+.dm .lt{background:#e9d8b4}.dm .dk{background:#7a5236}
+.dm .pc{width:76%;height:76%;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3),0 2px 3px rgba(0,0,0,.4)}
+.dm .p0{background:#ff4d5e}.dm .p1{background:#ffd23f}
+.dm .mv .pc{box-shadow:0 0 0 3px rgba(255,255,255,.6),inset 0 -3px 0 rgba(0,0,0,.3)}
+.dm .sel .pc{box-shadow:0 0 0 4px #fff}
+.dm .tg::after{content:'';width:34%;height:34%;border-radius:50%;background:rgba(255,255,255,.8);position:absolute}
+.rv{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#0b3d1e;padding:3px;border-radius:12px;margin:8px 0}
+.rv button{aspect-ratio:1;background:#1f8a4c;display:flex;align-items:center;justify-content:center;border-radius:3px}
+.rv .ds{width:80%;height:80%;border-radius:50%;box-shadow:0 2px 3px rgba(0,0,0,.4)}.rv .d1{background:#111}.rv .d2{background:#f5f5f5}
+.rv .ht{width:26%;height:26%;border-radius:50%;background:rgba(255,255,255,.4)}
+.rb{font-size:42px;width:74px;height:74px;border-radius:22px;background:var(--bg2);border:1px solid var(--line);margin:0 3px;touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -267,7 +280,7 @@ function boardHTML(sc,low){const arr=Object.entries(sc).sort((a,b)=>low?a[1]-b[1
 /* pantallas */
 let H={},CUR=null;
 app.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a;
-  if(a==='__back'){home();return}
+  if(a==='__back'){if(TOUR&&TOUR.playing){TOUR.playing=false;clearAll();tourResult()}else home();return}
   if(a==='__rules'){rules(CUR);return}
   const f=H[a];if(f)f(t,e)});
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal'||e.target.closest('[data-close]'))$('#modal').innerHTML=''});
@@ -501,7 +514,7 @@ def({id:'reflejos',icon:'⚡',name:'Duelo de reflejos',c:'#22c58b',min:2,max:2,b
  rules:`<ol><li>Poned el móvil en la mesa entre los dos; cada uno tiene su mitad.</li><li>Cuando la pantalla se ponga <b>verde</b>, toca tu mitad lo más rápido posible.</li><li>Si tocas antes de tiempo, el punto es para el otro. Gana quien llegue a 5.</li></ol>`,
  start(){const g=this,nm=P(),sc=[0,0],GOAL=5;let state='idle';
   screen(g,`<div class="duel" id="du"><div class="half top" data-p="1"><h3>${esc(nm[1])}</h3><div class="sc" id="s1">0</div><div class="m" id="m1">Toca para empezar</div></div><div class="half" data-p="0"><h3>${esc(nm[0])}</h3><div class="sc" id="s0">0</div><div class="m" id="m0">Toca para empezar</div></div></div>`);
-  const du=$('#du'),msg=t=>{$('#m0').textContent=t;$('#m1').textContent=t};let stopT=null,t0=0;
+  const du=$('#du');fitH(du);const msg=t=>{$('#m0').textContent=t;$('#m1').textContent=t};let stopT=null,t0=0;
   const round=()=>{state='wait';du.classList.remove('go');msg('Espera al verde…');stopT=later(1500+rnd(3500),()=>{state='go';t0=performance.now();du.classList.add('go');msg('¡YA!');beep(1200,.12)})};
   du.querySelectorAll('.half').forEach(h=>h.addEventListener('pointerdown',e=>{e.preventDefault();const p=+h.dataset.p;
    if(state==='idle'){round();return}
@@ -621,7 +634,7 @@ def({id:'hockey',icon:'🏒',name:'Hockey de mesa',c:'#06b6d4',min:2,max:2,best:
  rules:`<ol><li>Poned el móvil en la mesa entre los dos. Cada uno defiende su lado.</li><li>Mueve tu mazo con el dedo dentro de tu mitad y golpea el disco.</li><li>Gana quien marque 5 goles.</li></ol>`,
  start(){const g=this,nm=P(),sc=[0,0],GOAL=5;
   screen(g,`<canvas id="hk"></canvas>`);
-  const cv=$('#hk'),W=cv.clientWidth||340,HH=cv.clientHeight||500,dpr=window.devicePixelRatio||1;cv.width=W*dpr;cv.height=HH*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  const cv=$('#hk');fitH(cv);const W=cv.clientWidth||340,HH=cv.clientHeight||500,dpr=window.devicePixelRatio||1;cv.width=W*dpr;cv.height=HH*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
   const PR=W*.1,R=W*.055,GW=W*.44,gx0=(W-GW)/2,gx1=gx0+GW,MX=W*.055,COL=['#ff5c8a','#3fd6ff'];
   const pad=[{x:W/2,y:HH-PR*2.2,vx:0,vy:0},{x:W/2,y:PR*2.2,vx:0,vy:0}],pk={x:W/2,y:HH/2,vx:0,vy:0};
   let over=0,flash=0,raf=0,last=performance.now();
@@ -2201,21 +2214,126 @@ def({id:'quiz',icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,max:4,best
   choose()}});
 function th2(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
 (()=>{const i=GAMES.findIndex(g=>g.id==='quiz'),j=GAMES.map(g=>g.id).lastIndexOf('quiz');if(i!==j)GAMES.splice(i,1,GAMES.splice(j,1)[0])})();
+/* ================= TANDA 3: tableros, emoji, ruleta y torneo ================= */
+const fitH=el=>{const vh=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;el.style.height=Math.max(300,Math.round(vh-el.getBoundingClientRect().top-36))+'px'};
+const EMOJIS=[
+['🦁👑','El Rey León','Película'],['🚢🧊💔','Titanic','Película'],['🧙‍♂️💍🌋','El Señor de los Anillos','Película'],['🕷️🧑','Spider-Man','Película'],['🦈🏖️','Tiburón','Película'],['👻🚫','Los Cazafantasmas','Película'],['🐠🔍','Buscando a Nemo','Película'],['🧸🤠🚀','Toy Story','Película'],['❄️👸⛄','Frozen','Película'],['🦖🏝️','Jurassic Park','Película'],['🎈🏠👴','Up','Película'],['👽🚲🌕','E.T., el extraterrestre','Película'],['🏴‍☠️⚓🌊','Piratas del Caribe','Película'],['🦇🧑🌃','Batman','Película'],['⚡👓🧙','Harry Potter','Película'],['🚗⚡⏰','Regreso al futuro','Película'],['💀🎸🌼','Coco','Película'],['🐀👨‍🍳🇫🇷','Ratatouille','Película'],['🥊🐯','Rocky','Película'],['🍫🏭','Charlie y la fábrica de chocolate','Película'],['👩‍🚀🌽🕳️','Interstellar','Película'],['🤖❤️🌱','WALL·E','Película'],['🐼🥋','Kung Fu Panda','Película'],['🟢👹🏰','Shrek','Película'],['🃏🤡','Joker','Película'],['💊🕶️','Matrix','Película'],['👨‍👩‍👧‍👦🦸','Los Increíbles','Película'],['🧜‍♀️🌊','La Sirenita','Película'],['🐘👂','Dumbo','Película'],['🦍🏙️','King Kong','Película'],
+['💸🎭🏦','La casa de papel','Serie'],['🐉👑⚔️','Juego de Tronos','Serie'],['🧪👨‍🔬💰','Breaking Bad','Serie'],['🦑🎮','El juego del calamar','Serie'],['☕👫👫👫','Friends','Serie'],['🍩👨‍👩‍👧‍👦🟡','Los Simpson','Serie'],
+['🐦✋ 💯🐦✈️','Más vale pájaro en mano que ciento volando','Refrán'],['🐕🗣️ 🚫🦷','Perro ladrador, poco mordedor','Refrán'],['🌧️ 🙂','Al mal tiempo, buena cara','Refrán'],['👀🚫 ❤️🚫','Ojos que no ven, corazón que no siente','Refrán'],['🦐😴 🌊','Camarón que se duerme, se lo lleva la corriente','Refrán'],['🐴🎁 🦷🚫👀','A caballo regalado no le mires el diente','Refrán'],['⏰🌅 🙏','A quien madruga, Dios le ayuda','Refrán'],['🏠🔨 🥄🪵','En casa del herrero, cuchara de palo','Refrán'],['🤐 🪰🚫','En boca cerrada no entran moscas','Refrán'],['🐱🚫 🐭💃','Cuando el gato no está, los ratones bailan','Refrán'],['🌳⬇️ 🪓🪵','Del árbol caído todos hacen leña','Refrán'],['📖🚫 👀📕','No juzgues un libro por su portada','Refrán'],
+['💃👑','Dancing Queen','Canción'],['👁️🐯','Eye of the Tiger','Canción'],['🌧️💜','Purple Rain','Canción'],['🟡🚢🤿','Yellow Submarine','Canción'],['🏨🌴☀️','Hotel California','Canción'],['☂️','Umbrella','Canción'],['💔','Corazón partío','Canción'],['🌹🌹','Rosas','Canción'],['🦈👶','Baby Shark','Canción'],['🚀👨','Rocket Man','Canción'],['⛽','Gasolina','Canción'],['🚲','La bicicleta','Canción'],
+['🗼🇫🇷','La Torre Eiffel','Lugar'],['🐻🍓🌳','El Oso y el Madroño','Lugar'],['🚪☀️','La Puerta del Sol','Lugar'],['🗽🍎','Nueva York','Lugar'],['🥔🥚🍳','Tortilla de patatas','Comida'],['🦑🥖','Bocadillo de calamares','Comida'],['🍇🕛🎆','Las uvas de Nochevieja','Tradición'],['👑👑👑🐫🎁','Los Reyes Magos','Tradición']
+];
+const CASTIGOS=['Haz 10 sentadillas','Habla con acento extranjero hasta la próxima ronda','Sirve la bebida al resto durante 10 minutos','Cuenta un chiste; si nadie se ríe, cuenta otro','Baila 20 segundos sin música','El ganador te pone un apodo para toda la noche','Imita a alguien del grupo hasta que adivinen quién es','Canta el estribillo que elija el ganador','No puedes decir «sí» ni «no» durante 5 minutos','Te toca recoger la mesa','Juega la siguiente ronda con la mano que no usas','Habla en susurros durante 3 minutos','Di algo bonito de cada persona presente','Aguanta una plancha 30 segundos','Haz tu mejor imitación de un animal','Cuenta una anécdota que te dé vergüenza','El grupo te hace un peinado nuevo','Camina como un cangrejo hasta la cocina y vuelve','Te toca fregar los vasos','Haz una reverencia cada vez que alguien diga tu nombre durante 10 minutos'];
+const PREMIOS=['Eliges el próximo juego','Eliges la música durante 15 minutos','Te libras del próximo castigo','Mandas un reto a quien quieras','Eliges quién recoge hoy','Te sirven la bebida','Eliges sitio en el sofá','Punto extra en el próximo juego','Eliges la peli o la serie de hoy','El último clasificado te hace un cumplido sincero','Eliges el postre o el picoteo','Inmunidad: nadie te puede retar durante 10 minutos','Pones un apodo a quien quieras','Eliges el plan de la próxima quedada','Masaje de hombros de 1 minuto','Empiezas tú el próximo juego'];
+
+def({id:'damas',icon:'🏁',name:'Damas',c:'#b45309',min:2,max:2,best:[2,2],desc:'El duelo clásico de tablero: captura todas las fichas rivales.',
+ rules:`<ol><li>Las fichas se mueven en diagonal hacia delante, de una en una, por las casillas oscuras.</li><li>Se captura saltando por encima de una ficha rival. <b>Capturar es obligatorio</b>, y si tras capturar puedes seguir saltando, sigues.</li><li>Al llegar al otro extremo, la ficha se corona 👑 y puede moverse y capturar también hacia atrás.</li><li>Gana quien deje al rival sin fichas o sin movimientos.</li></ol>`,
+ start(){const g=this,nm=P(),wins=[0,0],COL=['#ff4d5e','#ffd23f'];let first=0;
+  const game=()=>{const B=Array.from({length:8},(_,r)=>Array.from({length:8},(_,c)=>(r+c)%2?(r<3?2:r>4?1:0):0));let cur=first,sel=null,chain=false,winner=-1;
+   const own=(v,p)=>v>0&&(v-1)%2===p,inb=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+   const dirs=v=>v>2?[[-1,-1],[-1,1],[1,-1],[1,1]]:v===1?[[-1,-1],[-1,1]]:[[1,-1],[1,1]];
+   const jumps=(r,c)=>{const v=B[r][c],p=(v-1)%2,o=[];dirs(v).forEach(([dr,dc])=>{const mr=r+dr,mc=c+dc,tr=r+2*dr,tc=c+2*dc;if(inb(tr,tc)&&!B[tr][tc]&&B[mr][mc]&&!own(B[mr][mc],p))o.push([tr,tc,mr,mc])});return o};
+   const steps=(r,c)=>{const o=[];dirs(B[r][c]).forEach(([dr,dc])=>{const tr=r+dr,tc=c+dc;if(inb(tr,tc)&&!B[tr][tc])o.push([tr,tc])});return o};
+   const all=p=>{const js=[],ss=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(own(B[r][c],p)){if(jumps(r,c).length)js.push([r,c]);if(steps(r,c).length)ss.push([r,c])}return{js,ss}};
+   const render=()=>{const a=all(cur),mov=a.js.length?a.js:a.ss,tg=sel?(a.js.length?jumps(sel[0],sel[1]):steps(sel[0],sel[1])):[];
+    screen(g,`<p class="center" style="font-weight:800;font-size:18px;margin:0">${winner>=0?'🏆 ¡Gana '+esc(nm[winner])+'!':'<span class="dot" style="background:'+COL[cur]+'"></span>Turno de '+esc(nm[cur])+(a.js.length?' · captura obligatoria':'')}</p><div class="dm">${B.map((row,r)=>row.map((v,c)=>{const isSel=sel&&sel[0]===r&&sel[1]===c,isT=tg.some(t=>t[0]===r&&t[1]===c),isM=winner<0&&!sel&&mov.some(m=>m[0]===r&&m[1]===c);return `<button data-a="c" data-r="${r}" data-c="${c}" class="${(r+c)%2?'dk':'lt'}${isSel?' sel':''}${isT?' tg':''}${isM?' mv':''}">${v?`<span class="pc p${(v-1)%2}">${v>2?'👑':''}</span>`:''}</button>`}).join('')).join('')}</div><p class="stats center"><span class="dot" style="background:${COL[0]}"></span>${esc(nm[0])} ${wins[0]} — ${wins[1]} ${esc(nm[1])}<span class="dot" style="background:${COL[1]};margin:0 0 0 6px"></span></p>${winner>=0?'<button class="btn primary xl" data-a="re">Revancha</button>':''}`,{
+     c:t=>{if(winner>=0)return;const r=+t.dataset.r,c=+t.dataset.c,m=sel&&tg.find(x=>x[0]===r&&x[1]===c);
+      if(m){const v=B[sel[0]][sel[1]];B[sel[0]][sel[1]]=0;B[r][c]=v;const jumped=m.length>2;if(jumped)B[m[2]][m[3]]=0;let promo=false;if(v===1&&r===0){B[r][c]=3;promo=true}if(v===2&&r===7){B[r][c]=4;promo=true}
+       beep(jumped?300:500,.06,jumped?'sawtooth':'sine');vib(jumped?50:15);
+       if(jumped&&!promo&&jumps(r,c).length){sel=[r,c];chain=true}
+       else{cur=1-cur;sel=null;chain=false;const n=all(cur);if(!n.js.length&&!n.ss.length){winner=1-cur;wins[winner]++;confetti()}}
+       render()}
+      else if(!chain){sel=own(B[r][c],cur)&&mov.some(x=>x[0]===r&&x[1]===c)?[r,c]:null;render()}},
+     re:()=>{first=1-first;game()}})};
+   render()};
+  game()}});
+
+def({id:'reversi',icon:'⚫',name:'Reversi',c:'#16a34a',min:2,max:2,best:[2,2],desc:'Encierra las fichas del rival para darles la vuelta.',
+ rules:`<ol><li>Por turnos, colocad una ficha de forma que encierre en línea (recta o diagonal) una o más fichas rivales entre la nueva y otra tuya.</li><li>Las fichas encerradas se dan la vuelta y pasan a ser tuyas.</li><li>Si no puedes colocar, pasas. Cuando nadie puede, gana quien tenga más fichas.</li></ol><p>Los puntitos marcan dónde puedes colocar.</p>`,
+ start(){const g=this,nm=P(),wins=[0,0];let first=0;
+  const game=()=>{const B=Array.from({length:8},()=>Array(8).fill(0));B[3][3]=B[4][4]=2;B[3][4]=B[4][3]=1;let cur=first,over=false,msg='';
+   const D=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]],inb=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+   const flips=(r,c,p)=>{if(B[r][c])return[];const out=[];D.forEach(([dr,dc])=>{const line=[];let rr=r+dr,cc=c+dc;while(inb(rr,cc)&&B[rr][cc]===3-p){line.push([rr,cc]);rr+=dr;cc+=dc}if(line.length&&inb(rr,cc)&&B[rr][cc]===p)out.push(...line)});return out};
+   const can=p=>{for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(flips(r,c,p).length)return true;return false};
+   const cnt=p=>B.flat().filter(x=>x===p).length;
+   const render=()=>{const a=cnt(1),b=cnt(2);
+    screen(g,`<p class="center" style="font-weight:800;font-size:18px;margin:0">${over?(a===b?'🤝 ¡Empate!':'🏆 ¡Gana '+esc(nm[a>b?0:1])+'!'):(cur?'⚪':'⚫')+' Turno de '+esc(nm[cur])}</p><p class="sub center" style="margin:4px 0;min-height:20px">${msg}</p><div class="rv">${B.map((row,r)=>row.map((v,c)=>`<button data-a="c" data-r="${r}" data-c="${c}">${v?`<span class="ds d${v}"></span>`:(!over&&flips(r,c,cur+1).length?'<span class="ht"></span>':'')}</button>`).join('')).join('')}</div><div class="chips"><span class="chip">⚫ ${esc(nm[0])} · <b>${a}</b></span><span class="chip">⚪ ${esc(nm[1])} · <b>${b}</b></span></div><p class="stats center">Partidas: ${esc(nm[0])} ${wins[0]} — ${wins[1]} ${esc(nm[1])}</p>${over?'<button class="btn primary xl" data-a="re">Revancha</button>':''}`,{
+     c:t=>{if(over)return;const r=+t.dataset.r,c=+t.dataset.c,f=flips(r,c,cur+1);if(!f.length)return;B[r][c]=cur+1;f.forEach(([x,y])=>B[x][y]=cur+1);beep(500+f.length*40,.06);vib(15);msg='';
+      if(can(2-cur))cur=1-cur;else if(can(cur+1))msg='⏭️ '+esc(nm[1-cur])+' no puede colocar: repite '+esc(nm[cur]);
+      else{over=true;const x=cnt(1),y=cnt(2);if(x!==y)wins[x>y?0:1]++;confetti()}
+      render()},re:()=>{first=1-first;game()}})};
+   render()};
+  game()}});
+
+def({id:'ppt',icon:'✊',name:'Piedra, papel o tijera',c:'#0891b2',min:2,max:2,best:[2,2],desc:'A ciegas: cada uno elige en su lado sin que el otro lo vea.',
+ rules:`<ol><li>Móvil en la mesa entre los dos. Cada uno elige en su mitad, tapando con la mano.</li><li>Cuando los dos han elegido, se destapa.</li><li>Gana quien llegue antes a 3 victorias. Perfecto para decidir quién paga o quién empieza.</li></ol>`,
+ start(){const g=this,nm=P(),sc=[0,0],E=['✊','✋','✌️'],GOAL=3;let pick=[null,null],phase='pick',msg=['',''],endAt=0;
+  screen(g,`<div class="duel" id="rps"><div class="half top" id="h1"></div><div class="half" id="h0"></div></div>`);
+  const box=$('#rps');fitH(box);
+  const upd=()=>[0,1].forEach(p=>{$('#h'+p).innerHTML=`<h3 style="font-size:24px">${esc(nm[p])}</h3><div class="sc" style="font-size:40px">${sc[p]}</div>`+(phase==='pick'?(pick[p]===null?`<div style="margin-top:8px">${E.map((e,i)=>`<button class="rb" data-p="${p}" data-v="${i}">${e}</button>`).join('')}</div>`:'<div class="m">✅ Elegido · esperando…</div>'):`<div style="font-size:56px;line-height:1.2">${E[pick[p]]} <small style="font-size:24px;opacity:.6">vs ${E[pick[1-p]]}</small></div><div class="m">${msg[p]}</div>`)});
+  box.addEventListener('pointerdown',e=>{e.preventDefault();const now=performance.now();
+   if(phase==='end'){if(now-endAt>1200){sc[0]=sc[1]=0;pick=[null,null];phase='pick';upd()}return}
+   const b=e.target.closest('.rb');if(!b||phase!=='pick')return;const p=+b.dataset.p;if(pick[p]!==null)return;pick[p]=+b.dataset.v;beep(600,.05);vib(15);
+   if(pick[0]!==null&&pick[1]!==null){phase='show';const d=(pick[0]-pick[1]+3)%3;
+    if(d===0)msg=['Empate','Empate'];else{const w=d===1?0:1;sc[w]++;msg=w===0?['¡Ganas! 🎉','Pierdes']:['Pierdes','¡Ganas! 🎉'];beep(880,.15)}
+    upd();later(1700,()=>{if(sc[0]>=GOAL||sc[1]>=GOAL){phase='end';endAt=performance.now();const w=sc[0]>=GOAL?0:1;msg=[0,1].map(p=>p===w?'🏆 ¡Has ganado! Toca para repetir':'Toca para la revancha');confetti()}else{pick=[null,null];phase='pick'}upd()})}
+   else upd()});
+  upd()}});
+
+def({id:'emoji',icon:'🧩',name:'Adivina el emoji',c:'#f472b6',min:2,max:16,best:[2,10],desc:'Pelis, refranes y canciones escritos solo con emojis.',
+ rules:`<ol><li>Sale un título o un refrán escrito con emojis.</li><li>El primero que lo diga en voz alta se lleva el punto.</li><li>Pulsad «Ver solución» para comprobarlo y apuntar quién ha acertado.</li></ol>`,
+ start(){const g=this,sc=zero(),d=deck(EMOJIS);
+  const next=()=>{const e=d();screen(g,`<div class="center"><p class="lbl">${e[2]}</p><div class="card big"><div style="font-size:clamp(40px,13vw,64px);line-height:1.35">${e[0]}</div></div><p class="sub">El primero que lo diga en voz alta se lleva el punto.</p><button class="btn primary xl" data-a="s">Ver solución</button></div>`,{s:()=>screen(g,`<div class="center"><div style="font-size:40px;margin-top:6px">${e[0]}</div><div class="secret" style="font-size:30px">${esc(e[1])}</div><p class="lbl">¿Quién lo ha acertado?</p>${pickChips(P())}<button class="btn ghost" data-a="n">Nadie</button><h3 style="margin-top:10px">Marcador</h3>${boardHTML(sc)}</div>`,{chip:t=>{sc[P()[+t.dataset.i]]++;beep(880,.15);next()},n:next})})};
+  next()}});
+
+def({id:'ruleta',icon:'🎡',name:'Ruleta de castigos y premios',c:'#e11d48',min:2,max:20,best:[2,20],desc:'Para combinar con los demás juegos: quien pierde (o gana), gira.',
+ rules:`<p>Usadla entre juego y juego: quien pierde gira para un castigo, quien gana para un premio, o dejadlo al azar con «Mezcla». Son castigos suaves y para todos los públicos.</p>`,
+ start(){const g=this,dc=deck(CASTIGOS),dp=deck(PREMIOS),all=CASTIGOS.concat(PREMIOS);let mode='mix',spinning=false;
+  const view=()=>screen(g,`<div class="seg">${[['cas','😈 Castigo'],['pre','🎁 Premio'],['mix','🎲 Mezcla']].map(m=>`<button data-a="md" data-m="${m[0]}" class="${m[0]===mode?'on':''}">${m[1]}</button>`).join('')}</div><div class="card big" id="rl"><div style="font-size:80px">🎡</div><div class="hint">Gira la ruleta</div></div><button class="btn primary xl" data-a="sp">🎡 ¡Girar!</button>`,{
+   md:t=>{if(spinning)return;mode=t.dataset.m;view()},
+   sp:()=>{if(spinning)return;spinning=true;const isP=mode==='pre'||(mode==='mix'&&Math.random()<.4),fin=(isP?dp:dc)(),el=$('#rl');let k=0,delay=55;
+    const tick=()=>{k++;if(k<24){el.innerHTML=`<div class="txt" style="opacity:.55">${all[rnd(all.length)]}</div>`;beep(380+k*18,.03);delay*=1.11;later(delay,tick)}
+     else{el.innerHTML=`<p class="lbl">${isP?'🎁 Premio':'😈 Castigo'}</p><div class="txt">${fin}</div>`;beep(880,.3);vib(80);if(isP)confetti();spinning=false}};tick()}});
+  view()}});
+
+/* ----- Torneo ----- */
+let TOUR=null;
+const TOUR_OK=['conoces','frente','tabu','dibuja','mimica','verdad','conecta4','reflejos','naval','hockey','codigo','quiz','memo','cajas','verdades','ahorcado','tararea','dados','damas','reversi','ppt','emoji'];
+const tourPool=()=>{const n=P().length;return GAMES.filter(x=>TOUR_OK.includes(x.id)&&n>=x.min&&n<=x.max)};
+function tourNext(){const T=TOUR,g=GAMES.find(x=>x.id==='torneo'),ps=P();
+ if(T.round>=T.total){const mx=Math.max(...ps.map(p=>T.sc[p])),lead=ps.filter(p=>T.sc[p]===mx);
+  if(lead.length===1){confetti();later(500,confetti);const sc=T.sc,tot=T.round;TOUR=null;
+   screen(g,`<div class="center"><div style="font-size:90px;margin-top:10px">🏆</div><p class="lbl">Campeón del torneo</p><h1 style="font-size:48px;color:var(--yel)">${esc(lead[0])}</h1><p class="sub">${tot} rondas jugadas</p>${boardHTML(sc)}<button class="btn primary xl" data-a="a">Nuevo torneo</button><button class="btn" data-a="r">🎡 Ruleta de premios y castigos</button></div>`,{a:()=>g.start(),r:()=>GAMES.find(x=>x.id==='ruleta').start()});return}
+  T.total++;T.tie=true}
+ if(!T.left.length)T.left=shuffle(tourPool());
+ T.cur=T.left.pop();T.round++;
+ const show=()=>screen(g,`<div class="center"><p class="lbl">${T.tie?'Ronda de desempate':'Ronda '+T.round+' de '+T.total}</p><div class="card"><div style="font-size:64px">${T.cur.icon}</div><div class="w" style="font-size:34px">${T.cur.name}</div><div class="hint">${T.cur.desc}</div></div><p class="sub">Al terminar, pulsad <b>‹</b> (arriba a la izquierda) para apuntar quién ha ganado.</p><button class="btn primary xl" data-a="go">¡A jugar!</button><button class="btn" data-a="sw">🔀 Cambiar de juego</button><h3 style="margin-top:14px">Clasificación</h3>${boardHTML(T.sc)}</div>`,{
+  go:()=>{T.playing=true;T.cur.start()},sw:()=>{if(!T.left.length)T.left=shuffle(tourPool().filter(x=>x!==T.cur));if(T.left.length)T.cur=T.left.pop();show()}});
+ show()}
+function tourResult(){const T=TOUR,g=GAMES.find(x=>x.id==='torneo'),ps=P(),sel=new Set();
+ screen(g,`<div class="center"><p class="lbl">${T.tie?'Desempate':'Ronda '+T.round+' de '+T.total} · ${T.cur.icon} ${T.cur.name}</p><h2 style="margin:14px 0">¿Quién ha ganado?</h2><div class="chips">${ps.map((p,i)=>`<button class="chip" data-a="t" data-i="${i}">${esc(p)}</button>`).join('')}</div><p class="sub">Si hay empate, marcad a varios. Cada ganador suma 1 punto.</p><button class="btn primary xl" data-a="ok">Confirmar</button><button class="btn ghost" data-a="back">↩️ Seguir jugando a ${T.cur.name}</button></div>`,{
+  t:t=>{const i=+t.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);t.classList.toggle('on');beep(600,.04)},
+  ok:()=>{sel.forEach(i=>T.sc[ps[i]]++);tourNext()},back:()=>{T.playing=true;T.cur.start()}})}
+def({id:'torneo',icon:'🏆',name:'Torneo',c:'#ca8a04',min:2,max:16,best:[2,16],desc:'Encadena varios juegos al azar con una clasificación de toda la noche.',
+ rules:`<ol><li>Elegid cuántas rondas: 3, 5 o 7. En cada una la app sortea un juego de los que encajan con vuestro número de jugadores.</li><li>Jugad y, al terminar, pulsad <b>‹</b> para apuntar quién ha ganado: suma 1 punto.</li><li>Tras la última ronda se proclama campeón. Si hay empate, se juega una ronda de desempate.</li></ol>`,
+ start(){const g=this;let rounds=5;const pool=tourPool();
+  const view=()=>screen(g,`<div class="center"><div style="font-size:70px">🏆</div><p class="lbl">¿Cuántas rondas?</p><div class="seg">${[3,5,7].map(v=>`<button data-a="r" data-v="${v}" class="${v===rounds?'on':''}">${v}</button>`).join('')}</div><p class="sub">Se sortean entre ${pool.length} juegos aptos para ${P().length} jugadores.</p><div class="chips">${P().map(p=>`<span class="chip">${esc(p)}</span>`).join('')}</div><button class="btn primary xl" data-a="go">¡Empezar torneo!</button></div>`,{r:t=>{rounds=+t.dataset.v;view()},go:()=>{TOUR={sc:zero(),round:0,total:rounds,left:shuffle(tourPool()),playing:false,cur:null,tie:false};tourNext()}});
+  view()}});
 /* ================= INICIO ================= */
-function home(){clearAll();CUR=null;const n=S.names.length,ps=P();
+function home(){clearAll();CUR=null;TOUR=null;const n=S.names.length,ps=P();
  const ok=GAMES.filter(g=>n>=g.min&&n<=g.max),best=ok.filter(g=>n>=g.best[0]&&n<=g.best[1]),also=ok.filter(g=>!best.includes(g)),no=GAMES.filter(g=>!ok.includes(g));
  const card=(g,off)=>`<button class="gc ${off?'off':''}" style="--c:${g.c}" data-a="${off?'nope':'open'}" data-id="${g.id}">${off?`<span class="bd">${n<g.min?'desde '+g.min:'solo '+g.max}</span>`:g.best[0]<=2&&g.best[1]<=3&&n===2?'<span class="star">Ideal 2</span>':''}<span class="ic">${g.icon}</span><h4>${g.name}</h4><p>${g.desc}</p></button>`;
  H={
   minus:()=>{if(S.names.length>2){S.names.pop();save();home()}},
   plus:()=>{if(S.names.length<20){S.names.push('');save();home();setTimeout(()=>{const ins=document.querySelectorAll('.names input');ins[ins.length-1]&&ins[ins.length-1].focus()},50)}},
-  open:t=>intro(GAMES.find(g=>g.id===t.dataset.id)),
+  tour:()=>intro(GAMES.find(g=>g.id==='torneo')),open:t=>intro(GAMES.find(g=>g.id===t.dataset.id)),
   nope:t=>{const g=GAMES.find(x=>x.id===t.dataset.id);vib(60);rules(g)},
-  rand:()=>{if(!ok.length)return;const el=$('#rand');let k=0;const pool=best.length?best:ok;const st=every(90,()=>{const g=pool[k++%pool.length];el.textContent=g.icon+' '+g.name;beep(400+(k%5)*80,.03);if(k>14+rnd(pool.length)){st();vib(60);setTimeout(()=>intro(g),500)}})}
+  rand:()=>{if(!ok.length)return;const el=$('#rand');let k=0;const pool=(best.length?best:ok).filter(g=>g.id!=='torneo'&&g.id!=='ruleta');const st=every(90,()=>{const g=pool[k++%pool.length];el.textContent=g.icon+' '+g.name;beep(400+(k%5)*80,.03);if(k>14+rnd(pool.length)){st();vib(60);setTimeout(()=>intro(g),500)}})}
  };
  app.innerHTML=`<header class="hero"><div class="logo">🎲</div><h1>¿Jugamos?</h1><p>${GAMES.length} juegos para quedadas · un solo móvil</p></header>
  <section class="panel"><div class="row"><h3>¿Cuántos sois?</h3><div class="stepper"><button data-a="minus" aria-label="Menos">−</button><b>${n}</b><button data-a="plus" aria-label="Más">+</button></div></div>
  <div class="names">${S.names.map((v,i)=>`<input data-i="${i}" value="${esc(v)}" placeholder="Jugador ${i+1}" maxlength="16" autocomplete="off">`).join('')}</div></section>
- <button class="random" data-a="rand" id="rand">🎰 ¡Que elija la app!</button>
+ <button class="random" data-a="rand" id="rand">🎰 ¡Que elija la app!</button><button class="btn" data-a="tour" style="border-color:#ca8a04">🏆 Modo torneo</button>
  ${best.length?`<div class="sec"><h3>${n===2?'Perfectos para dos':'Perfectos para '+n}</h3><span>${best.length}</span></div><div class="grid">${best.map(g=>card(g)).join('')}</div>`:''}
  ${also.length?`<div class="sec"><h3>También funcionan</h3><span>${also.length}</span></div><div class="grid">${also.map(g=>card(g)).join('')}</div>`:''}
  ${no.length?`<div class="sec"><h3>${no.some(g=>n<g.min)?'Necesitáis más gente':'No disponibles'}</h3><span>${no.length}</span></div><div class="grid">${no.map(g=>card(g,true)).join('')}</div>`:''}
