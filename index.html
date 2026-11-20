@@ -2211,15 +2211,15 @@ addFixed('General',[
 const QZ_ICON={'Geografía':'🌍','Banderas':'🏳️','Ciencia':'🔬','Mates':'🧮','Historia':'🏛️','Arte y cultura':'🎨','Deportes':'⚽','Lengua':'📚','Inglés':'🇬🇧','General':'💡'};
 
 def({id:'quiz',icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,max:4,best:[2,4],desc:'Miles de preguntas en 10 categorías: responde quien pulse antes.',
- rules:`<ol><li>Sale una pregunta con 4 opciones y cada uno tiene su pulsador. Quien pulse antes tiene 8 segundos para responder.</li><li>Elegid cómo se gana:<ul><li><b>A puntos</b>: gana quien llegue antes a 5, 10 o 15. Acierto +1, fallo −1.</li><li><b>Preguntas</b>: se juegan 10, 20 o 30 y gana quien tenga más puntos. Si hay empate, desempate a muerte súbita.</li><li><b>Categorías</b>: cada acierto te da la insignia de esa categoría. Gana quien reúna antes 3, 5 o las 10. Si fallas, no puedes pulsar en la siguiente.</li><li><b>Libre</b>: sin final.</li></ul></li></ol><p>Hay ${th2(QZ.length)} preguntas y las respuestas incorrectas cambian cada vez.</p>`,
- start(){const g=this,sc=zero(),COLS=['#ff4d5e','#3b6cf0','#22c58b','#f59e0b'],cats=[...new Set(QZ.map(q=>q[0]))],decks={},won={},order=shuffle(cats.slice()),goal={pts:10,num:10,cat:5},OPT={pts:[5,10,15],num:[10,20,30],cat:[3,5,10]};
+ rules:`<ol><li>Sale una pregunta con 4 opciones y cada uno tiene su pulsador. Quien pulse antes tiene 8 segundos para responder.</li><li>Elegid cómo se gana:<ul><li><b>A puntos</b>: gana quien llegue antes a 5, 10 o 15. Acierto +1; podéis elegir si fallar resta un punto.</li><li><b>Preguntas</b>: se juegan 10, 20 o 30 y gana quien tenga más puntos. Si hay empate, desempate a muerte súbita.</li><li><b>Categorías</b>: cada acierto te da la insignia de esa categoría. Gana quien reúna antes 3, 5 o las 10. Si fallas, no puedes pulsar en la siguiente.</li><li><b>Libre</b>: sin final.</li></ul></li></ol><p>Hay ${th2(QZ.length)} preguntas y las respuestas incorrectas cambian cada vez.</p>`,
+ start(){let fpen=false;const g=this,sc=zero(),COLS=['#ff4d5e','#3b6cf0','#22c58b','#f59e0b'],cats=[...new Set(QZ.map(q=>q[0]))],decks={},won={},order=shuffle(cats.slice()),goal={pts:10,num:10,cat:5},OPT={pts:[5,10,15],num:[10,20,30],cat:[3,5,10]};
   cats.forEach(c=>decks[c]=deck(QZ.filter(q=>q[0]===c)));P().forEach(p=>won[p]=new Set());let n=0,cat='mix',mode='pts',blocked=null,ci=0;
   const bd=()=>mode==='cat'?`<ol class="board">${P().map(p=>`<li><span>${esc(p)}</span><b style="font-size:17px">${[...won[p]].map(c=>QZ_ICON[c]).join(' ')} ${won[p].size}/${goal.cat}</b></li>`).join('')}</ol>`:boardHTML(sc);
-  const pen=w=>mode==='cat'?esc(w)+' no pulsa en la siguiente':'−1 para '+esc(w);
+  const pen=w=>mode==='cat'?esc(w)+' no pulsa en la siguiente':fpen?'−1 para '+esc(w):'sin punto para '+esc(w);
   const next=()=>{const it=decks[mode==='cat'?order[ci++%order.length]:cat==='mix'?cats[rnd(cats.length)]:cat](),q=[it[1]],ans=it[2],opts=shuffle([ans,...it[3]()]),blk=blocked;blocked=null;n++;
    const oh=(click,shown,pick)=>`<div class="opts">${opts.map((o,i)=>click?`<button class="opt" data-a="o" data-i="${i}">${esc(o)}</button>`:`<div class="opt ${shown&&o===ans?'good':shown&&pick===o?'wrong':''}">${esc(o)}</div>`).join('')}</div>`;
    const res=(who,pick)=>{const ok=pick===ans;
-    if(who){if(mode==='cat'){if(ok)won[who].add(it[0]);else blocked=who;sc[who]=won[who].size}else sc[who]+=ok?1:-1}
+    if(who){if(mode==='cat'){if(ok)won[who].add(it[0]);else blocked=who;sc[who]=won[who].size}else sc[who]+=ok?1:(fpen?-1:0)}
     if(ok){confetti();beep(880,.2)}else{beep(180,.3);vib(150)}
     const mx=Math.max(...P().map(p=>sc[p])),lead=P().filter(p=>sc[p]===mx),fin=mode==='pts'?mx>=goal.pts:mode==='num'?(n>=goal.num&&lead.length===1):mode==='cat'?mx>=goal.cat:false;
     const prog=mode==='pts'?'Gana quien llegue a '+goal.pts+' puntos':mode==='num'?(n>=goal.num?'¡Empate! Desempate a muerte súbita':'Pregunta '+n+' de '+goal.num):mode==='cat'?'Gana quien reúna '+goal.cat+' categorías':'';
@@ -2230,8 +2230,8 @@ def({id:'quiz',icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,max:4,best
     const st=every(1000,()=>{left--;const tm=$('#tm');if(tm){tm.textContent=Math.max(0,left);if(left<=3)tm.classList.add('hot')}if(left<=0){st();res(who,'')}})};
    screen(g,`<div class="center"><p class="lbl">Pregunta ${n}${mode==='num'?(n>goal.num?' · desempate':' de '+goal.num):''} · ${QZ_ICON[it[0]]||''} ${it[0]}</p><h2 class="q" style="font-size:24px">${esc(q[0])}</h2>${oh(false,false)}<p class="sub" style="margin-top:10px">¡Pulsa tu botón si la sabes!</p><div class="buzz">${P().map((p,i)=>`<button data-p="${i}" ${p===blk?'disabled style="background:#444;opacity:.45"':'style="background:'+COLS[i]+'"'}>${p===blk?'🚫':'🔔'} ${esc(p)}</button>`).join('')}</div><button class="btn ghost" data-a="x">Nadie la sabe</button></div>`,{x:()=>res(null,null)});
    let done=false;document.querySelectorAll('.buzz button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();if(done||b.disabled)return;done=true;beep(900,.15);vib(40);answer(+b.dataset.p)}))};
-  const MODES=[['pts','A puntos'],['num','Preguntas'],['cat','Categorías'],['free','Libre']],HELP={pts:'Gana quien llegue antes a esa puntuación. Acierto +1, fallo −1.',num:'Se juega ese número de preguntas y gana quien tenga más puntos.',cat:'Cada acierto te da la insignia de su categoría. Gana quien reúna antes ese número. Si fallas, no pulsas en la siguiente.',free:'Sin final: jugad hasta que os canséis.'};
-  const choose=()=>screen(g,`<p class="lbl">¿Cómo se gana?</p><div class="seg">${MODES.map(m=>`<button data-a="md" data-m="${m[0]}" class="${m[0]===mode?'on':''}" style="font-size:14px;padding:10px 2px">${m[1]}</button>`).join('')}</div>${OPT[mode]?`<div class="seg">${OPT[mode].map(v=>`<button data-a="gl" data-v="${v}" class="${goal[mode]===v?'on':''}">${mode==='cat'&&v===10?'Las 10':v}</button>`).join('')}</div>`:''}<p class="sub" style="margin:4px 0 14px">${HELP[mode]}</p>${mode==='cat'?'<p class="lbl">Las categorías van rotando</p><div class="chips" style="justify-content:flex-start">'+cats.map(c=>`<span class="chip" style="padding:6px 12px">${QZ_ICON[c]} ${c}</span>`).join('')+'</div>':`<p class="lbl">Categoría · ${th2(QZ.length)} preguntas</p><div class="cats">${cats.map(c=>`<button data-a="cat" data-id="${c}" class="${c===cat?'on':''}">${QZ_ICON[c]||''} ${c}<br><small style="opacity:.7">${th2(QZ.filter(q=>q[0]===c).length)}</small></button>`).join('')}</div><button class="btn" data-a="cat" data-id="mix" style="${cat==='mix'?'background:var(--vi);border-color:var(--vi)':''}">🎲 Mezcla de todo</button>`}<button class="btn primary xl" data-a="go" style="margin-top:16px">¡Empezar!</button>`,{cat:t=>{cat=t.dataset.id;choose()},md:t=>{mode=t.dataset.m;choose()},gl:t=>{goal[mode]=+t.dataset.v;choose()},go:next});
+  const MODES=[['pts','A puntos'],['num','Preguntas'],['cat','Categorías'],['free','Libre']],HELP={pts:'Gana quien llegue antes a esa puntuación.',num:'Se juega ese número de preguntas y gana quien tenga más puntos.',cat:'Cada acierto te da la insignia de su categoría. Gana quien reúna antes ese número. Si fallas, no pulsas en la siguiente.',free:'Sin final: jugad hasta que os canséis.'};
+  const choose=()=>screen(g,`<p class="lbl">¿Cómo se gana?</p><div class="seg">${MODES.map(m=>`<button data-a="md" data-m="${m[0]}" class="${m[0]===mode?'on':''}" style="font-size:14px;padding:10px 2px">${m[1]}</button>`).join('')}</div>${OPT[mode]?`<div class="seg">${OPT[mode].map(v=>`<button data-a="gl" data-v="${v}" class="${goal[mode]===v?'on':''}">${mode==='cat'&&v===10?'Las 10':v}</button>`).join('')}</div>`:''}<p class="sub" style="margin:4px 0 8px">${HELP[mode]}</p>${mode!=='cat'?`<p class="lbl">¿Fallar resta un punto?</p><div class="seg"><button data-a="pn" data-v="0" class="${fpen?'':'on'}">😌 No resta</button><button data-a="pn" data-v="1" class="${fpen?'on':''}">😈 Sí, −1</button></div>`:''}<div style="height:8px"></div>${mode==='cat'?'<p class="lbl">Las categorías van rotando</p><div class="chips" style="justify-content:flex-start">'+cats.map(c=>`<span class="chip" style="padding:6px 12px">${QZ_ICON[c]} ${c}</span>`).join('')+'</div>':`<p class="lbl">Categoría · ${th2(QZ.length)} preguntas</p><div class="cats">${cats.map(c=>`<button data-a="cat" data-id="${c}" class="${c===cat?'on':''}">${QZ_ICON[c]||''} ${c}<br><small style="opacity:.7">${th2(QZ.filter(q=>q[0]===c).length)}</small></button>`).join('')}</div><button class="btn" data-a="cat" data-id="mix" style="${cat==='mix'?'background:var(--vi);border-color:var(--vi)':''}">🎲 Mezcla de todo</button>`}<button class="btn primary xl" data-a="go" style="margin-top:16px">¡Empezar!</button>`,{cat:t=>{cat=t.dataset.id;choose()},md:t=>{mode=t.dataset.m;choose()},gl:t=>{goal[mode]=+t.dataset.v;choose()},pn:t=>{fpen=t.dataset.v==='1';choose()},go:next});
   choose()}});
 function th2(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
 (()=>{const i=GAMES.findIndex(g=>g.id==='quiz'),j=GAMES.map(g=>g.id).lastIndexOf('quiz');if(i!==j)GAMES.splice(i,1,GAMES.splice(j,1)[0])})();
@@ -2463,7 +2463,7 @@ def({id:'fiestabar',icon:'🍻',name:'Fiesta en el bar',c:'#f59e0b',min:2,max:20
 /* ================= MODO ONLINE: cada uno con su móvil (Firebase Realtime Database por REST) ================= */
 const FB_URL='https://jugamos-quedadas-default-rtdb.europe-west1.firebasedatabase.app';
 const ON={code:null,me:null,name:'',st:null,es:null,hide:false,ok:false,lock:'',tick:null,decks:{}};
-const OG={icon:'🌐',name:'Partida online',rules:`<p>Cada uno juega desde su propio móvil.</p><ol><li>Una persona crea la sala y comparte el código o el enlace.</li><li>El resto se une con ese código.</li><li>Quien crea la sala es el <b>anfitrión</b>: elige el juego y avanza las rondas.</li></ol><p>Juegos disponibles: El impostor, El espía, La pregunta trampa y Quiz con pulsador.</p><p>Hace falta conexión a internet en todos los móviles.</p>`};
+const OG={icon:'🌐',name:'Partida online',rules:`<p>Cada uno juega desde su propio móvil.</p><ol><li>Una persona crea la sala y comparte el código o el enlace.</li><li>El resto se une con ese código.</li><li>Quien crea la sala es el <b>anfitrión</b>: elige el juego y avanza las rondas.</li></ol><p>Juegos disponibles: Fiesta total (también en modo bar), El impostor, El espía, La pregunta trampa y Quiz con pulsador.</p><p>Hace falta conexión a internet en todos los móviles.</p>`};
 try{ON.me=sessionStorage.getItem('quedada.uid')}catch(e){}
 if(!ON.me){ON.me=Math.random().toString(36).slice(2,10);try{sessionStorage.setItem('quedada.uid',ON.me)}catch(e){}}
 const fbU=p=>`${FB_URL}/rooms/${ON.code}${p?'/'+p:''}.json`;
@@ -2553,13 +2553,13 @@ const ON_GAMES={
    if(s.phase==='show'){onScreen(`<p class="lbl">La pregunta real era</p><div class="card"><div class="txt">${esc(s.q[0])}</div></div>${list}<p class="sub center">Alguien respondía a otra pregunta. Justificad vuestras respuestas y votad.</p>${hostBar(`<button class="btn primary xl" data-a="rv">Revelar quién tenía la trampa</button>${toLobby()}`)}`,{rv:()=>fbPatch('state',{phase:'reveal'}),lob:goLobby});return}
    onScreen(`<div class="center"><p class="lbl">Tenía la pregunta trampa</p><h1 style="font-size:42px;color:var(--bad)">${esc(onName(s.odd))}</h1><p class="lbl">Su pregunta era</p><div class="card"><div class="txt">${esc(s.q[1])}</div></div></div>${list}${hostBar(`<button class="btn primary xl" data-a="re">Otra ronda</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby})}},
  quiz:{icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,desc:'Cada uno pulsa en su móvil: responde el más rápido.',
-  setup(){const cats=[...new Set(QZ.map(q=>q[0]))];onScreen(`<p class="lbl">Gana quien llegue a…</p><div class="seg">${[5,10,15].map(v=>`<button data-a="gl" data-v="${v}">${v} puntos</button>`).join('')}</div><p class="sub">Acierto +1, fallo −1. Quien pulse antes tiene 10 segundos para responder.</p><p class="lbl">Categoría</p><div class="cats"><button data-a="c" data-id="mix" class="on">🎲 Mezcla</button>${cats.map(c=>`<button data-a="c" data-id="${c}">${QZ_ICON[c]||''} ${c}</button>`).join('')}</div>${toLobby()}`,{
-    gl:t=>{const sc={};onPlayers().forEach(p=>sc[p.id]=0);ON.qcat=ON.qcat||'mix';fbPut('state',{g:'quiz',goal:+t.dataset.v,cat:ON.qcat,n:0,sc,phase:'pre'}).then(()=>this.next({cat:ON.qcat,n:0}))},
-    c:t=>{ON.qcat=t.dataset.id;document.querySelectorAll('[data-a=c]').forEach(b=>b.classList.toggle('on',b===t))},lob:goLobby})},
+  setup(){const cats=[...new Set(QZ.map(q=>q[0]))];onScreen(`<p class="lbl">Gana quien llegue a…</p><div class="seg">${[5,10,15].map(v=>`<button data-a="gl" data-v="${v}">${v} puntos</button>`).join('')}</div><p class="lbl">¿Fallar resta un punto?</p><div class="seg"><button data-a="pn" data-v="0" class="${ON.qpen?'':'on'}">😌 No resta</button><button data-a="pn" data-v="1" class="${ON.qpen?'on':''}">😈 Sí, −1</button></div><p class="sub">Acierto +1. Quien pulse antes tiene 10 segundos para responder.</p><p class="lbl">Categoría</p><div class="cats"><button data-a="c" data-id="mix" class="on">🎲 Mezcla</button>${cats.map(c=>`<button data-a="c" data-id="${c}">${QZ_ICON[c]||''} ${c}</button>`).join('')}</div>${toLobby()}`,{
+    gl:t=>{const sc={};onPlayers().forEach(p=>sc[p.id]=0);ON.qcat=ON.qcat||'mix';fbPut('state',{g:'quiz',goal:+t.dataset.v,cat:ON.qcat,pen:!!ON.qpen,n:0,sc,phase:'pre'}).then(()=>this.next({cat:ON.qcat,n:0}))},
+    c:t=>{ON.qcat=t.dataset.id;document.querySelectorAll('[data-a=c]').forEach(b=>b.classList.toggle('on',b===t))},pn:t=>{ON.qpen=t.dataset.v==='1';document.querySelectorAll('[data-a=pn]').forEach(b=>b.classList.toggle('on',b===t))},lob:goLobby})},
   next(o0){const s=o0||ON.st.state;const cat=s.cat||'mix',key='qz_'+cat;if(!ON.decks[key])ON.decks[key]=deck(cat==='mix'?QZ:QZ.filter(q=>q[0]===cat));const it=ON.decks[key](),o=shuffle([it[2],...it[3]()]);
    fbPatch('state',{phase:'ask',n:(s.n||0)+1,q:{t:it[1],o,a:o.indexOf(it[2]),c:it[0]},buzz:null,who:null,pick:null,t0:null,msg:null})},
   tick(s){if(s.phase==='ask'&&s.buzz&&!s.who){const k='bz'+s.n;if(ON.lock===k)return;ON.lock=k;setTimeout(()=>{const b=(ON.st.state||{}).buzz||{};const w=Object.entries(b).sort((x,y)=>x[1]-y[1])[0];if(w)fbPatch('state',{phase:'answer',who:w[0],t0:Date.now()})},450)}
-   if(s.phase==='answer'){const done=s.pick!==undefined&&s.pick!==null,late=Date.now()-(s.t0||0)>10500;if(done||late){const k='an'+s.n;if(ON.lock===k)return;ON.lock=k;const ok=done&&s.pick===s.q.a,sc=Object.assign({},s.sc||{});sc[s.who]=(sc[s.who]||0)+(ok?1:-1);
+   if(s.phase==='answer'){const done=s.pick!==undefined&&s.pick!==null,late=Date.now()-(s.t0||0)>10500;if(done||late){const k='an'+s.n;if(ON.lock===k)return;ON.lock=k;const ok=done&&s.pick===s.q.a,sc=Object.assign({},s.sc||{});sc[s.who]=(sc[s.who]||0)+(ok?1:(s.pen?-1:0));
      const end=Object.values(sc).some(v=>v>=s.goal);fbPatch('state',{phase:end?'end':'result',sc,res:ok?'ok':done?'bad':'late'})}}},
   view(s){const ps=onPlayers(),sc=s.sc||{},q=s.q||{o:[]};
    const board=()=>{const o={};ps.forEach(p=>o[p.n]=sc[p.id]||0);return boardHTML(o)};
@@ -2572,7 +2572,7 @@ const ON_GAMES={
    if(s.phase==='answer'){const me=s.who===ON.me,left=Math.max(0,10-Math.floor((Date.now()-(ON.ansSeen&&ON.ansSeen.n===s.n?ON.ansSeen.t:(ON.ansSeen={n:s.n,t:Date.now()}).t))/1000));
     onScreen(`<div class="tbar"><span class="who">🔔 ${me?'¡Respondes tú!':esc(onName(s.who))+' responde…'}</span><span class="timer" id="tm">${left}</span></div>${head}${opts(me&&s.pick==null,false)}`,{o:t=>{if(!me)return;fbPatch('state',{pick:+t.dataset.i});beep(700,.05)}});
     const st=every(1000,()=>{const tm=$('#tm');if(!tm){st();return}const l=Math.max(0,10-Math.floor((Date.now()-ON.ansSeen.t)/1000));tm.textContent=l;if(l<=3)tm.classList.add('hot')});return}
-   const w=s.who?onName(s.who):null,msg=s.res==='ok'?`✅ ¡Correcto, ${esc(w)}!`:s.res==='bad'?`❌ ¡Fallo! −1 para ${esc(w)}`:s.res==='late'?`⏰ ¡Tiempo! −1 para ${esc(w)}`:'La respuesta era…';
+   const w=s.who?onName(s.who):null,msg=s.res==='ok'?`✅ ¡Correcto, ${esc(w)}!`:s.res==='bad'?`❌ ¡Fallo, ${esc(w)}!${s.pen?' −1':''}`:s.res==='late'?`⏰ ¡Tiempo, ${esc(w)}!${s.pen?' −1':''}`:'La respuesta era…';
    if(s.res==='ok'&&ON.lastRes!==s.n){ON.lastRes=s.n;confetti();beep(880,.2)}
    if(s.phase==='end'){const top=ps.slice().sort((a,b)=>(sc[b.id]||0)-(sc[a.id]||0))[0];if(ON.lastEnd!==s.n){ON.lastEnd=s.n;confetti();later(500,confetti)}
     onScreen(`<h2 class="center" style="font-size:24px;margin:6px 0">${msg}</h2>${opts(false,true)}<div class="win-msg" style="font-size:22px;margin-top:14px">🏆 ¡${esc(top.n)} gana la partida!</div>${board()}${hostBar(`<button class="btn primary xl" data-a="re">Otra partida</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby});return}
@@ -4802,6 +4802,143 @@ def({id:'losabes',icon:'🎓',name:'¿Lo sabes?',c:'#0ea5e9',min:1,max:16,best:[
    const mid=style==='solo'?`<p class="stats center">Aciertos: <b>${hits}</b> de ${n}</p>`:boardHTML(sc);
    const r=$('#qaR');if(r)r.innerHTML=`${mid}<button class="btn primary xl" data-a="n">Siguiente pregunta ➜</button><button class="btn ghost" data-a="cfg">⚙️ Categorías</button>`;H.n=ask;H.cfg=setup};
   setup()}});
+
+/* ================= FIESTA TOTAL ONLINE ================= */
+(()=>{
+const COMM=['mimica','dibujo','prohib','tararea','emojis','pistas'];
+const SECS={mimica:60,dibujo:75,prohib:60,tararea:60,emojis:60,pistas:45,pregunta:20,rapidez:25,stop:30,letras:30,todos:30};
+const pick=a=>a[rnd(a.length)];
+const anaW=()=>{const w=pick([...new Set(DIBUJA.concat(...CATS.filter(c=>['objetos','animales','comida','prof'].includes(c.id)).map(c=>c.items)))].filter(w=>/^[A-Za-zÁÉÍÓÚáéíóúÑñ]{5,9}$/.test(w))).toUpperCase();let sc=w;for(let i=0;i<10&&sc===w;i++)sc=shuffle([...w]).join('');return{w,sc}};
+const genP=(ty,who,team)=>{const p={t:ty,who,team,st:false};
+ if(ty==='mimica'||ty==='emojis')p.w=pick(CATS.filter(c=>['acciones','pelis','animales','prof','famosos'].includes(c.id)).flatMap(c=>c.items));
+ else if(ty==='dibujo')p.w=pick(DIBUJA);
+ else if(ty==='prohib'){const t=pick(TABU);p.w=t[0];p.f=t[1]}
+ else if(ty==='tararea')p.w=pick(CANCIONES);
+ else if(ty==='pistas')p.w=pick(CATS.flatMap(c=>c.items));
+ else if(ty==='pregunta'){const it=pick(QZ),o=shuffle([it[2],...it[3]()]);p.q=it[1];p.o=o;p.a=o.indexOf(it[2]);p.c=it[0]}
+ else if(ty==='rapidez')p.w=pick(BOMBA_CAT);
+ else if(ty==='stop'){p.L=pick(FT_LET.split(''));p.cs=shuffle(FT_STOP.slice()).slice(0,4)}
+ else if(ty==='letras'){const a=anaW();p.w=a.w;p.sc=a.sc}
+ else if(ty==='todos'){const e=pick(EMOJIS);p.e=e[0];p.w=e[1];p.c=e[2]}
+ return p};
+const curWho=(s,ti)=>{const t=s.teams[ti];return t.m[(t.k||0)%t.m.length]};
+const teamOf=(s,id)=>s.teams.findIndex(t=>t.m.includes(id));
+const canAct=(s,ids)=>isHost()||ids.includes(ON.me);
+const boardH=(s,hl)=>{const cols=8,E=s.END;let c='';for(let i=0;i<=E;i++){const r=Math.floor(i/cols),cc=r%2?cols-1-(i%cols):i%cols,ty=s.sq[i],T=FT_TYPES[ty],here=s.teams.filter(t=>Math.min(t.pos,E)===i);
+  c+=`<div class="fc${i===hl?' hl':''}" style="grid-row:${r+1};grid-column:${cc+1};${T?'background:'+T.col+'33;border-color:'+T.col+'99':''}"><span class="fi">${ty==='start'?'🚩':ty==='end'?'🏁':T.icon}</span>${here.length?`<span class="ftk">${here.map(t=>`<i style="background:${t.col}"></i>`).join('')}</span>`:''}</div>`}return `<div class="fb">${c}</div>`};
+const status=s=>s.mode==='coop'?`<p class="center" style="font-weight:800;margin:4px 0">Vidas: ${'❤️'.repeat(s.lives)}${'🖤'.repeat(Math.max(0,5-s.lives))} · Casilla ${s.teams[0].pos} de ${s.END}</p>`:`<div class="chips" style="margin:6px 0">${s.teams.map((t,i)=>`<span class="chip" style="border-color:${t.col};${i===s.cur?'background:'+t.col+'44':''}">${t.ic} ${esc(t.n)}${t.m.includes(ON.me)?' (tú)':''} · <b>${t.pos}</b></span>`).join('')}</div>`;
+const tnames=t=>t.m.map(onName).map(esc).join(', ');
+
+/* ----- acciones (las ejecuta el móvil que pulsa) ----- */
+function fRoll(){const s=JSON.parse(JSON.stringify(ON.st.state)),t=s.teams[s.cur],v=1+rnd(6);t.pos=Math.min(s.END,t.pos+v);s.die=v;s.k=(s.k||0)+1;
+ if(t.pos>=s.END){s.phase='win';s.win=s.cur;fbPut('state',s);return}
+ const who=curWho(s,s.cur);s.p=genP(s.sq[t.pos],who,s.cur);s.phase='prueba';fbPut('state',s)}
+function fDone(ok,bonusTeam,n){const s=JSON.parse(JSON.stringify(ON.st.state));if(s.phase!=='prueba')return;const t=s.teams[s.cur];t.k=(t.k||0)+1;
+ let extra='';if(bonusTeam!=null&&bonusTeam>=0){const b=s.teams[bonusTeam];b.pos=Math.min(s.END,b.pos+(n||1));extra=`+${n||1} casilla${(n||1)>1?'s':''} para ${b.n}`}
+ if(!ok&&s.mode==='coop')s.lives--;
+ const w=s.teams.findIndex(x=>x.pos>=s.END);if(w>=0){s.phase='win';s.win=w;delete s.p;fbPut('state',s);return}
+ if(s.mode==='coop'&&s.lives<=0){s.phase='lose';delete s.p;fbPut('state',s);return}
+ const T=FT_TYPES[s.p.t];s.res={ok,t:s.p.t,w:s.p.w||'',extra,team:s.cur};
+ if(!ok&&s.mode!=='coop')s.cur=(s.cur+1)%s.teams.length;
+ s.phase='result';delete s.p;fbPut('state',s)}
+
+/* ----- dibujo compartido ----- */
+const drawStrokes=(cv,strokes)=>{const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;if(cv.width!==Math.round(r.width*dpr)){cv.width=r.width*dpr;cv.height=r.height*dpr}const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#fff';ctx.fillRect(0,0,r.width,r.height);ctx.lineCap='round';ctx.lineJoin='round';
+ Object.keys(strokes||{}).sort((a,b)=>+a-+b).forEach(k=>{const st=strokes[k];if(!st||!st.p)return;const pts=st.p.split(';').map(x=>x.split(',').map(Number));ctx.strokeStyle=st.c;ctx.fillStyle=st.c;ctx.lineWidth=st.s*r.width/1000;
+  if(pts.length===1){ctx.beginPath();ctx.arc(pts[0][0]*r.width/1000,pts[0][1]*r.height/1000,st.s*r.width/2000,0,7);ctx.fill();return}
+  ctx.beginPath();pts.forEach(([x,y],i)=>{const X=x*r.width/1000,Y=y*r.height/1000;i?ctx.lineTo(X,Y):ctx.moveTo(X,Y)});ctx.stroke()})};
+function drawPad(cv,pathBase){let color='#111',size=8,cur=null,idx=Date.now()%1e7,last=0,pend=null;const r=()=>cv.getBoundingClientRect();
+ const local={};drawStrokes(cv,local);
+ const push=(force)=>{if(!cur)return;const now=Date.now();if(!force&&now-last<350){if(!pend)pend=setTimeout(()=>{pend=null;push(true)},360);return}last=now;fbPut(`${pathBase}/${cur.k}`,{c:cur.c,s:cur.s,p:cur.pts.join(';')}).catch(()=>{})};
+ const pos=e=>{const b=r();return[Math.round((e.clientX-b.left)/b.width*1000),Math.round((e.clientY-b.top)/b.height*1000)]};
+ cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);cur={k:++idx,c:color,s:size,pts:[pos(e).join(',')]};local[cur.k]={c:cur.c,s:cur.s,p:cur.pts.join(';')};drawStrokes(cv,local);push(true)});
+ cv.addEventListener('pointermove',e=>{if(!cur)return;cur.pts.push(pos(e).join(','));local[cur.k].p=cur.pts.join(';');drawStrokes(cv,local);push(false)});
+ const up=()=>{if(!cur)return;push(true);cur=null};['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,up));
+ return{color:c=>{color=c;size=c==='#ffffff'?40:8},clear:()=>{Object.keys(local).forEach(k=>delete local[k]);drawStrokes(cv,local);fbPut(pathBase,null).catch(()=>{})}}}
+
+/* ----- vista ----- */
+ON_GAMES.fiesta={icon:'🎉',name:'Fiesta total',c:'#e879f9',min:2,desc:'Tablero de pruebas: cada uno ve lo suyo en su móvil.',
+ setup(){const ps=onPlayers(),n=ps.length;let bar=!!ON.fbar,len=32,nt=2,mode=n===2?'duel':n===3?'solo':'teams';
+  const seg=(a,arr,cur)=>`<div class="seg">${arr.map(([v,l])=>`<button data-a="${a}" data-v="${v}" class="${String(v)===String(cur)?'on':''}">${l}</button>`).join('')}</div>`;
+  const v=()=>onScreen(`<div class="center"><div style="font-size:50px">🎉</div><h2>Fiesta total online</h2></div>
+   <p class="lbl">Ambiente</p>${seg('am',[['casa','🏠 En casa'],['bar','🍻 En el bar']],bar?'bar':'casa')}
+   ${n===2?`<p class="lbl" style="margin-top:12px">Modo</p>${seg('md',[['duel','🆚 Duelo'],['coop','🤝 Juntos (5 vidas)']],mode)}`:''}
+   ${n>=4?`<p class="lbl" style="margin-top:12px">Modo</p>${seg('md',[['teams','👥 Por equipos'],['solo','🙋 Cada uno solo']],mode)}${mode==='teams'?seg('nt',Array.from({length:Math.min(4,Math.floor(n/2))-1},(_,i)=>[i+2,(i+2)+' equipos']),nt):''}`:''}
+   <p class="lbl" style="margin-top:12px">Duración</p>${seg('ln',[[24,'Corta'],[32,'Normal'],[44,'Larga']],len)}
+   <button class="btn primary xl" data-a="go" style="margin-top:14px">¡Empezar!</button>${toLobby()}`,{
+   am:t=>{bar=t.dataset.v==='bar';ON.fbar=bar;v()},md:t=>{mode=t.dataset.v;v()},nt:t=>{nt=+t.dataset.v;v()},ln:t=>{len=+t.dataset.v;v()},lob:goLobby,
+   go:()=>{const ids=shuffle(ps.map(p=>p.id));let teams;
+    if(mode==='teams'){teams=Array.from({length:nt},(_,i)=>({n:'Equipo '+(i+1),m:[]}));ids.forEach((id,i)=>teams[i%nt].m.push(id))}
+    else if(mode==='coop')teams=[{n:'Equipo',m:ids}];
+    else teams=ids.map(id=>({n:onName(id),m:[id]}));
+    teams.forEach((t,i)=>{t.col=FT_COLS[i%4];t.ic=FT_TEAM_ICON[i%4];t.pos=0;t.k=0});
+    const END=len+1,base=bar?['dibujo','prohib','emojis','pistas','pregunta','rapidez','stop','letras']:['mimica','dibujo','prohib','tararea','pregunta','rapidez','stop','letras'];
+    const sq=['start'];let bag=[];for(let i=1;i<END;i++){if(i%7===0){sq.push('todos');continue}if(!bag.length)bag=shuffle(base.slice());let ty=bag.pop();if(ty===sq[i-1]&&bag.length){bag.unshift(ty);ty=bag.pop()}sq.push(ty)}sq.push('end');
+    fbPut('state',{g:'fiesta',bar,mode,END,sq,teams,cur:0,lives:5,k:0,phase:'turn'})}});
+  v()},
+ view(s){const p=s.p||{},T=FT_TYPES[p.t]||{},me=ON.me,myTeam=teamOf(s,me);
+  /* reutilizar pantalla si no cambia la fase (dibujo, emojis y temporizador) */
+  const role=s.phase==='prueba'?(p.who===me?'P':(myTeam===p.team?'M':'O')):'-';
+  const key=`${s.phase}|${s.k}|${p.st?1:0}|${p.sol?1:0}|${role}|${isHost()?1:0}`;
+  if(ON.fkey===key&&ON.fupd&&CUR===OG&&document.getElementById('fx')){ON.fupd(s);return}
+  ON.fkey=key;ON.fupd=null;
+  if(s.phase==='turn'){const t=s.teams[s.cur],who=curWho(s,s.cur),mine=who===me;
+   onScreen(`${status(s)}${boardH(s,t.pos)}<div class="center" id="fx"><p style="font-weight:800;font-size:19px;margin:8px 0 2px">${s.mode==='coop'?'Os toca':`Turno de <span style="color:${t.col}">${t.ic} ${esc(t.n)}</span>`}</p>${t.m.length>1?`<p class="sub">Hace la prueba <b>${esc(onName(who))}</b></p>`:''}${mine||isHost()?`<button class="btn primary xl" data-a="r">🎲 ${mine?'Tirar el dado':'Tirar por '+esc(onName(who))}</button>`:`<p class="sub">Esperando a que ${esc(onName(who))} tire el dado…</p>`}</div>${isHost()?toLobby():''}`,{r:fRoll,lob:goLobby});return}
+  if(s.phase==='win'||s.phase==='lose'){const t=s.teams[s.win];if(ON.fend!==s.k){ON.fend=s.k;if(s.phase==='win'){confetti();later(500,confetti)}}
+   const ord=s.teams.slice().sort((a,b)=>b.pos-a.pos);
+   onScreen(`<div class="center" id="fx"><div style="font-size:80px">${s.phase==='win'?'🏆':'💔'}</div><h1 style="font-size:36px;color:var(--yel)">${s.phase==='lose'?'¡Sin vidas!':s.mode==='coop'?'¡Lo habéis conseguido!':'¡Gana '+esc(t.n)+'!'}</h1>${s.phase==='win'&&t.m.length>1?`<p class="sub">${tnames(t)}</p>`:''}${s.mode!=='coop'?`<ol class="board">${ord.map(x=>`<li><span>${x.ic} ${esc(x.n)}</span><b>${Math.min(x.pos,s.END)}</b></li>`).join('')}</ol>`:''}</div>${hostBar(`<button class="btn primary xl" data-a="re">Otra partida</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby});return}
+  if(s.phase==='result'){const R=s.res||{},RT=FT_TYPES[R.t]||{},next=s.teams[s.cur],nw=curWho(s,s.cur);if(R.ok&&ON.fres!==s.k){ON.fres=s.k;confetti();beep(880,.2)}
+   onScreen(`${status(s)}${boardH(s,next.pos)}<div class="center" id="fx"><h2 style="margin:8px 0;font-size:24px">${R.ok?'✅ ¡Superada!':'❌ Fallada'}</h2>${R.w?`<p class="sub">${RT.icon||''} ${RT.name||''}: <b>${esc(R.w)}</b></p>`:''}${R.extra?`<p class="sub">${esc(R.extra)}</p>`:''}<p class="sub">${R.ok?(s.mode==='coop'?'Volvéis a tirar':'Vuelve a tirar '+esc(next.n)):s.mode==='coop'?'Perdéis una vida':'Turno para '+esc(next.n)}</p>${canAct(s,[nw])?`<button class="btn primary xl" data-a="n">Continuar ➜</button>`:''}</div>${isHost()?toLobby():''}`,{n:()=>fbPatch('state',{phase:'turn',res:null}),lob:goLobby});return}
+  /* ----- prueba ----- */
+  const team=s.teams[p.team],perf=p.who===me,mate=!perf&&myTeam===p.team,solo=team.m.length===1;
+  const judges=s.mode==='coop'?team.m.filter(id=>id!==p.who):s.teams.flatMap((t,i)=>i===p.team?[]:t.m);
+  const isJudge=judges.includes(me)||(isHost()&&!perf&&!judges.length);
+  const head=`<div class="card" style="border-color:${T.col};background:linear-gradient(160deg,${T.col}44,#1b1e47 70%);padding:14px"><div style="font-size:40px">${T.icon}</div><div class="w" style="font-size:26px">${T.name}</div><div class="hint">${T.txt}</div><p class="sub" style="margin:6px 0 0">${p.t==='todos'?'¡Juegan todos!':`Juega <b>${esc(onName(p.who))}</b>${team.m.length>1&&COMM.includes(p.t)?' · adivina su equipo':COMM.includes(p.t)?' · adivinan los demás':''}`}${s.die?` · 🎲 sacó un ${s.die}`:''}</p></div>`;
+  const timerH=`<div class="tbar"><span class="who">${T.icon} ${esc(onName(p.who))}</span><span class="timer" id="tm">${SECS[p.t]}</span></div>`;
+  const startTimer=(onEnd)=>{const k0=s.k;if(!ON.ft||ON.ft.k!==k0)ON.ft={k:k0,t:Date.now()};const tick=()=>{const l=Math.max(0,SECS[p.t]-Math.floor((Date.now()-ON.ft.t)/1000)),tm=$('#tm');if(tm){tm.textContent=l;tm.classList.toggle('hot',l<=5)}if(l<=0&&!ON.ft.end){ON.ft.end=true;beep(200,.5,'sawtooth');vib([200,100,200]);const w=$('.tbar .who');if(w)w.textContent='⏰ ¡Tiempo!';onEnd&&onEnd()}};tick();every(500,tick)};
+  const okBtns=(lbl)=>`<div class="btns" style="margin-top:10px"><button class="btn ok" data-a="y">${lbl?lbl[0]:'✓ ¡Adivinada!'}</button><button class="btn bad" data-a="x">${lbl?lbl[1]:'✗ Rendirse'}</button></div>`;
+  const finComm=ok=>{if(ok&&solo&&s.mode!=='coop'&&s.teams.length>1){const others=s.teams.map((t,i)=>i).filter(i=>i!==p.team);if(others.length===1){fDone(true,others[0]);return}
+    onScreen(`<div class="center" id="fx"><h2 style="margin:20px 0">¿Quién lo ha adivinado?</h2><div class="chips">${others.map(i=>`<button class="chip" data-a="c" data-i="${i}">${s.teams[i].ic} ${esc(s.teams[i].n)}</button>`).join('')}</div></div>`,{c:t=>fDone(true,+t.dataset.i)});return}fDone(ok)};
+  /* intro: el que juega ve el secreto y pulsa empezar */
+  if(!p.st&&p.t!=='todos'){
+   const secret=COMM.includes(p.t)||p.t==='pregunta'?'':'';
+   if(perf){const sec=COMM.includes(p.t)?`<p class="lbl">Tu palabra (no la enseñes)</p><div class="secret">${esc(p.w)}</div>${p.f?`<div class="forb" style="max-width:320px;margin:0 auto 12px">${p.f.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}`:'';
+    onScreen(`${head}<div class="center" id="fx">${sec}<p class="sub">Tienes ${SECS[p.t]} segundos.</p><button class="btn primary xl" data-a="go">¡Empezar!</button></div>`,{go:()=>fbPatch('state/p',{st:true})});return}
+   onScreen(`${head}<div class="center" id="fx"><p class="sub">Esperando a que ${esc(onName(p.who))} empiece…</p>${isHost()?`<button class="btn" data-a="go">Empezar por ${esc(onName(p.who))}</button>`:''}</div>`,{go:()=>fbPatch('state/p',{st:true})});return}
+  /* comunicación */
+  if(COMM.includes(p.t)){
+   if(perf){
+    if(p.t==='dibujo'){onScreen(`${timerH}<p class="center sub" style="margin:2px 0">Dibuja: <b style="color:var(--yel)">${esc(p.w)}</b></p><div class="pal" id="fx">${['#111','#ff4d5e','#3b82f6','#22c58b','#ffb800'].map((c,i)=>`<button data-c="${c}" style="background:${c}" class="${i?'':'on'}"></button>`).join('')}<button data-c="#ffffff" style="background:#fff;outline:1px solid #999"></button><button class="mini" data-clr="1">🗑️</button></div><canvas id="cv" style="height:48vh"></canvas>${okBtns()}`,{y:()=>finComm(true),x:()=>finComm(false)});
+     const pad=drawPad($('#cv'),'state/p/dr');document.querySelectorAll('.pal button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.clr){pad.clear();return}pad.color(b.dataset.c);document.querySelectorAll('.pal button[data-c]').forEach(x=>x.classList.toggle('on',x===b))}));startTimer();ON.fupd=()=>{};return}
+    if(p.t==='emojis'){onScreen(`${timerH}<p class="center sub">Escribe <b style="color:var(--yel)">${esc(p.w)}</b> solo con emojis. Tu equipo lo ve en su móvil al momento.</p><textarea id="emj" class="tin" rows="3" style="font-size:44px;text-align:center;line-height:1.3;resize:none" placeholder="😀🎬…" autocomplete="off"></textarea><div id="fx"></div>${okBtns()}`,{y:()=>finComm(true),x:()=>finComm(false)});
+     const ta=$('#emj');let tmo=null;ta.addEventListener('input',()=>{const v=ta.value.replace(/[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ.,;:¿?¡!'"()\-_/]/g,'');if(v!==ta.value)ta.value=v;clearTimeout(tmo);tmo=setTimeout(()=>fbPut('state/p/emo',ta.value).catch(()=>{}),250)});startTimer();ON.fupd=()=>{};return}
+    onScreen(`${timerH}<div class="card big" id="fx"><div class="w">${esc(p.w)}</div>${p.f?`<div class="forb">${p.f.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}<div class="hint">${T.txt}</div></div>${okBtns()}`,{y:()=>finComm(true),x:()=>finComm(false)});startTimer();ON.fupd=()=>{};return}
+   /* quienes adivinan o miran */
+   const canMark=mate||isHost();
+   if(p.t==='dibujo'){onScreen(`${timerH}<p class="center sub" id="fx">${mate||solo?'¡Adivina lo que dibuja!':'Mira cómo dibuja (adivina su equipo)'}</p><canvas id="cv" style="height:52vh"></canvas>${canMark?okBtns():''}`,{y:()=>finComm(true),x:()=>finComm(false)});
+    const cv=$('#cv');drawStrokes(cv,p.dr);ON.fupd=ns=>drawStrokes(cv,(ns.p||{}).dr);startTimer();return}
+   if(p.t==='emojis'){onScreen(`${timerH}<div class="card big"><p class="lbl">${esc(onName(p.who))} escribe…</p><div id="fx" style="font-size:clamp(40px,12vw,60px);line-height:1.3;min-height:80px">${esc(p.emo||'…')}</div></div>${canMark?okBtns():''}`,{y:()=>finComm(true),x:()=>finComm(false)});
+    ON.fupd=ns=>{const e=$('#fx');if(e)e.textContent=(ns.p||{}).emo||'…'};startTimer();return}
+   const what={mimica:'Está haciendo mímica',tararea:'Está tarareando',prohib:'Está describiendo sin palabras prohibidas',pistas:'Está dando pistas de una palabra'}[p.t];
+   onScreen(`${timerH}<div class="card big" id="fx"><div style="font-size:60px">${T.icon}</div><div class="w" style="font-size:28px">${what}</div><div class="hint">${mate||solo?'¡Adivina!':'Adivina su equipo; tú, calladito 🤫'}</div></div>${canMark?okBtns():''}`,{y:()=>finComm(true),x:()=>finComm(false)});startTimer();ON.fupd=()=>{};return}
+  /* pregunta */
+  if(p.t==='pregunta'){const opts=(click,shown)=>`<div class="opts">${p.o.map((x,i)=>click?`<button class="opt" data-a="o" data-i="${i}">${esc(x)}</button>`:`<div class="opt ${shown&&i===p.a?'good':shown&&i===p.pk?'wrong':''}">${esc(x)}</div>`).join('')}</div>`;
+   if(p.pk!=null){onScreen(`${timerH}<h2 class="q" style="font-size:22px">${esc(p.q)}</h2>${opts(false,true)}<div id="fx"></div>${canAct(s,[p.who])?`<button class="btn primary xl" data-a="n">Continuar ➜</button>`:''}`,{n:()=>fDone(p.pk===p.a)});return}
+   onScreen(`${timerH}<p class="lbl">${QZ_ICON[p.c]||''} ${p.c}</p><h2 class="q" style="font-size:22px">${esc(p.q)}</h2>${opts(perf,false)}<div id="fx"></div>`,{o:t=>fbPatch('state/p',{pk:+t.dataset.i})});
+   startTimer(()=>{if(perf)fbPatch('state/p',{pk:-1})});return}
+  /* rapidez, stop, letras: juzgan los demás */
+  if(p.t==='rapidez'||p.t==='stop'||p.t==='letras'){
+   const body=p.t==='rapidez'?`<div class="card big"><p class="lbl">Di 5…</p><div class="w" style="font-size:clamp(26px,8vw,40px)">${esc(p.w)}</div><div class="hint">Sin repetir.</div></div>`
+    :p.t==='stop'?`<div class="card"><p class="lbl">Empezando por</p><div style="font-family:'Baloo 2';font-size:76px;line-height:1;color:var(--yel)">${p.L}</div></div><ol class="board">${p.cs.map(c=>`<li><span>${c}</span><b>${p.L}…</b></li>`).join('')}</ol>`
+    :`<div class="card big"><p class="lbl">¿Qué palabra es?</p><div style="font-family:'Baloo 2';font-size:clamp(32px,10vw,50px);letter-spacing:6px">${p.sc}</div><div class="hint">Empieza por «${p.w[0]}»${isJudge?` · solución: <b style="color:var(--yel)">${esc(p.w)}</b>`:''}</div></div>`;
+   onScreen(`${timerH}<div id="fx"></div>${body}${perf?`<p class="sub center">¡Dilo en voz alta! ${judges.length?'Te juzgan los demás.':''}</p>`:''}${isJudge||(perf&&!judges.length)?okBtns(['✓ Conseguido','✗ Fallado']):''}`,{y:()=>fDone(true),x:()=>fDone(false)});startTimer();return}
+  /* todos */
+  if(p.t==='todos'){
+   if(!p.sol){onScreen(`${head}<div class="card big" id="fx"><p class="lbl">${p.c||''}</p><div style="font-size:clamp(40px,13vw,62px);line-height:1.3">${p.e}</div></div><p class="sub center">¡El primero que lo diga en voz alta!</p><button class="btn primary xl" data-a="s">Ver solución</button>`,{s:()=>fbPatch('state/p',{sol:true})});return}
+   onScreen(`<div class="center" id="fx"><div style="font-size:40px">${p.e}</div><div class="secret" style="font-size:28px">${esc(p.w)}</div>${s.mode==='coop'?`<p class="lbl">¿Lo habéis adivinado?</p>${okBtns(['✓ Sí','✗ No'])}`:`<p class="lbl">¿Quién lo ha dicho primero? (+3 casillas)</p><div class="chips">${s.teams.map((t,i)=>`<button class="chip" data-a="c" data-i="${i}">${t.ic} ${esc(t.n)}</button>`).join('')}</div><button class="btn ghost" data-a="x">Nadie</button>`}</div>`,{
+    c:t=>{const i=+t.dataset.i;fDone(i===p.team,i,3)},y:()=>fDone(true),x:()=>fDone(false)});return}
+ }};
+})();
 
 /* ================= INICIO ================= */
 function home(){clearAll();onStop();CUR=null;TOUR=null;const n=S.names.length,ps=P();
