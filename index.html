@@ -2338,6 +2338,8 @@ const FT_TYPES={
  rapidez:{icon:'⚡',name:'Rapidez',col:'#06b6d4',txt:'Di 5 cosas de la categoría antes de que acabe el tiempo.'},
  stop:{icon:'🛑',name:'Stop',col:'#ec4899',txt:'Di una palabra de cada categoría que empiece por la letra.'},
  letras:{icon:'🔤',name:'Letras',col:'#84cc16',txt:'Ordena las letras y di la palabra escondida.'},
+ emojis:{icon:'🔣',name:'Emojis',col:'#f472b6',comm:true,txt:'Escríbela usando solo emojis y enseña la pantalla a tu equipo.'},
+ pistas:{icon:'🗝️',name:'Tres pistas',col:'#14b8a6',comm:true,txt:'Da como máximo tres pistas de una sola palabra cada una.'},
  todos:{icon:'⭐',name:'Todos juegan',col:'#ffd23f',txt:'Juegan todos los equipos: el primero que acierte avanza 3 casillas.'}
 };
 const FT_STOP=['Un país o ciudad','Un animal','Una comida','Un nombre de persona','Una cosa de casa','Una marca','Una profesión','Una fruta o verdura','Un famoso','Una película o serie','Algo de ropa','Un deporte','Un color','Una parte del cuerpo','Un instrumento','Un verbo'];
@@ -2351,7 +2353,7 @@ def({id:'fiesta',icon:'🎉',name:'Fiesta total',c:'#e879f9',min:2,max:20,best:[
  <p><b>Pruebas individuales</b> (las juzga el rival):<br>❓ Pregunta · ⚡ Rapidez · 🛑 Stop · 🔤 Letras</p>
  <p>⭐ <b>Todos juegan</b>: el primero que acierte avanza 3 casillas.</p>
  <p><b>Si jugáis dos:</b> en <i>Duelo</i>, las pruebas de equipo las adivina el rival, y si acierta avanzáis los dos (tú tu tirada, él 1 casilla). En <i>Juntos</i> sois un equipo con 5 vidas contra el tablero.</p>`,
- start(){const g=this,ps=P(),n=ps.length;let mode=n===2?'duel':n===3?'solo':'teams',nt=2,len=32,groups=null;
+ start(o){o=o||{};const g=this,ps=P(),n=ps.length;let mode=n===2?'duel':n===3?'solo':'teams',nt=2,len=32,groups=null,bar=!!o.bar;
   const mkGroups=()=>{const sh=shuffle(ps.slice()),gs=Array.from({length:nt},()=>[]);sh.forEach((p,i)=>gs[i%nt].push(p));groups=gs};
   const maxT=Math.min(4,Math.floor(n/2));
   const setup=()=>{if(mode==='teams'&&(!groups||groups.length!==nt))mkGroups();
@@ -2360,17 +2362,18 @@ def({id:'fiesta',icon:'🎉',name:'Fiesta total',c:'#e879f9',min:2,max:20,best:[
     ${n===2?`<p class="lbl">¿Cómo jugáis?</p>${seg('md',[['duel','🆚 Duelo'],['coop','🤝 Juntos']],mode)}<p class="sub">${mode==='duel'?'Cada uno avanza su ficha. Gana quien llegue antes a la meta.':'Sois un solo equipo con 5 vidas. Cada prueba fallada cuesta una. ¡Llegad a la meta!'}</p>`:''}
     ${n>=4?`<p class="lbl">Equipos</p>${seg('nt',Array.from({length:maxT-1},(_,i)=>[i+2,(i+2)+' equipos']),nt)}<div class="ftg">${groups.map((gr,i)=>`<div class="ftteam" style="border-color:${FT_COLS[i]}"><b>${FT_TEAM_ICON[i]} Equipo ${i+1}</b><span>${gr.map(esc).join(', ')}</span></div>`).join('')}</div><button class="btn" data-a="mix">🔀 Mezclar equipos</button>`:''}
     ${n===3?`<p class="sub">Con tres, cada uno juega por su cuenta. Las pruebas de equipo las adivinan los otros dos, y quien acierte avanza 1 casilla.</p>`:''}
+    <p class="lbl" style="margin-top:14px">Ambiente</p>${seg('am',[['casa','🏠 En casa'],['bar','🍻 En el bar']],bar?'bar':'casa')}<p class="sub">${bar?'Sin mímica ni tararear: todo se hace sentado, con el móvil y hablando bajo.':'Todas las pruebas, incluidas mímica y tararear.'}</p>
     <p class="lbl" style="margin-top:14px">Duración</p>${seg('ln',[[24,'Corta'],[32,'Normal'],[44,'Larga']],len)}
     <button class="btn primary xl" data-a="go" style="margin-top:16px">¡Empezar la fiesta!</button>`,{
-    md:t=>{mode=t.dataset.v;setup()},nt:t=>{nt=+t.dataset.v;groups=null;setup()},mix:()=>{mkGroups();setup()},ln:t=>{len=+t.dataset.v;setup()},go:begin})};
+    md:t=>{mode=t.dataset.v;setup()},am:t=>{bar=t.dataset.v==='bar';setup()},nt:t=>{nt=+t.dataset.v;groups=null;setup()},mix:()=>{mkGroups();setup()},ln:t=>{len=+t.dataset.v;setup()},go:begin})};
 
   function begin(){
    const teams=mode==='teams'?groups.map((gr,i)=>({name:'Equipo '+(i+1),m:gr})):mode==='coop'?[{name:'Equipo',m:ps.slice()}]:ps.map(p=>({name:p,m:[p]}));
    teams.forEach((t,i)=>{t.col=FT_COLS[i%4];t.ic=FT_TEAM_ICON[i%4];t.pos=0;t.k=rnd(t.m.length)});
-   const END=len+1,base=['mimica','dibujo','prohib','tararea','pregunta','rapidez','stop','letras'];
+   const END=len+1,base=bar?['dibujo','prohib','emojis','pistas','pregunta','rapidez','stop','letras']:['mimica','dibujo','prohib','tararea','pregunta','rapidez','stop','letras'];
    const sq=['start'];let bag=[];for(let i=1;i<END;i++){if(i%7===0){sq.push('todos');continue}if(!bag.length)bag=shuffle(base.slice());let t=bag.pop();if(t===sq[i-1]&&bag.length){bag.unshift(t);t=bag.pop()}sq.push(t)}sq.push('end');
    const W=['mimica','dibujo','prohib','tararea'].reduce((o,k)=>(o[k]=null,o),{});
-   const dMim=deck(CATS.filter(c=>['acciones','pelis','animales','prof','famosos'].includes(c.id)).flatMap(c=>c.items)),dDib=deck(DIBUJA),dTab=deck(TABU),dTar=deck(CANCIONES),dQ=deck(QZ),dCat=deck(BOMBA_CAT),dEmo=deck(EMOJIS),dStop=deck(FT_STOP);
+   const dPis=deck(CATS.flatMap(c=>c.items)),dMim=deck(CATS.filter(c=>['acciones','pelis','animales','prof','famosos'].includes(c.id)).flatMap(c=>c.items)),dDib=deck(DIBUJA),dTab=deck(TABU),dTar=deck(CANCIONES),dQ=deck(QZ),dCat=deck(BOMBA_CAT),dEmo=deck(EMOJIS),dStop=deck(FT_STOP);
    const ana=[...new Set(DIBUJA.concat(...CATS.filter(c=>['objetos','animales','comida','prof'].includes(c.id)).map(c=>c.items)))].filter(w=>/^[A-Za-zÁÉÍÓÚáéíóúÑñ]{5,9}$/.test(w));const dAna=deck(ana);
    let cur=0,lives=5,streak=0;const coop=mode==='coop';
 
@@ -2410,11 +2413,13 @@ def({id:'fiesta',icon:'🎉',name:'Fiesta total',c:'#e879f9',min:2,max:20,best:[
    const judge=(title,body,secs,cb,labels)=>{let left=secs;labels=labels||['✓ Conseguido','✗ Fallado'];
     screen(g,`<div class="tbar"><span class="who">${title}</span><span class="timer" id="tm">${left}</span></div>${body}<div class="btns" style="margin-top:12px"><button class="btn ok" data-a="y">${labels[0]}</button><button class="btn bad" data-a="x">${labels[1]}</button></div>`,{y:()=>{st();cb(true)},x:()=>{st();cb(false)}});
     const st=every(1000,()=>{left--;const tm=$('#tm');if(tm){tm.textContent=Math.max(0,left);if(left<=5)tm.classList.add('hot')}if(left<=5&&left>0)beep(700,.04);if(left<=0){st();beep(200,.5,'sawtooth');vib([200,100,200]);const tb=$('.tbar .who');if(tb)tb.textContent='⏰ ¡Tiempo! ¿Lo ha conseguido?'}});return st};
-   const comm=(kind)=>(t,who,cb)=>{const solo=t.m.length===1,word=kind==='mimica'?dMim():kind==='dibujo'?dDib():kind==='prohib'?dTab():dTar(),T=FT_TYPES[kind],secs=kind==='dibujo'?75:60;
+   const comm=(kind)=>(t,who,cb)=>{const solo=t.m.length===1,word=kind==='mimica'||kind==='emojis'?dMim():kind==='dibujo'?dDib():kind==='prohib'?dTab():kind==='pistas'?dPis():dTar(),T=FT_TYPES[kind],secs=kind==='dibujo'?75:60;
     const fin=ok=>{if(ok&&solo&&teams.length>1){const others=teams.filter(x=>x!==t);if(others.length===1){cb(true,{bonus:others[0]});return}
       screen(g,`<div class="center"><h2 style="margin:20px 0">¿Quién lo ha adivinado?</h2><div class="chips">${others.map((x,i)=>`<button class="chip" data-a="c" data-i="${i}">${x.ic} ${esc(x.name)}</button>`).join('')}</div></div>`,{c:e=>cb(true,{bonus:others[+e.dataset.i]})});return}cb(ok)};
     const label=kind==='prohib'?word[0]:word;
     passScreen(g,who,'Mira la palabra sin que nadie la vea.',()=>screen(g,`<div class="pass" style="padding-top:4vh"><p>${T.icon} ${T.name}</p><div class="secret">${esc(label)}</div>${kind==='prohib'?`<div class="forb" style="max-width:320px;margin:0 auto 16px">${word[1].map(f=>`<span>${esc(f)}</span>`).join('')}</div>`:''}<p class="sub">${T.txt} Tienes ${secs} segundos.</p><button class="btn primary xl" data-a="go">${kind==='dibujo'?'¡A dibujar!':'¡Empezar!'}</button></div>`,{go:()=>{
+     if(kind==='emojis'){judge(`🔣 ${esc(who)}`,`<p class="sub center">Escribe solo emojis (las letras y números se borran solos) y enseña la pantalla.</p><textarea id="emj" class="tin" rows="3" style="font-size:44px;text-align:center;line-height:1.3;resize:none" placeholder="😀🎬…" autocomplete="off"></textarea>`,secs,fin,['✓ ¡Adivinada!','✗ Rendirse']);const ta=$('#emj');ta.addEventListener('input',()=>{const v=ta.value.replace(/[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ.,;:¿?¡!'"()\-_/]/g,'');if(v!==ta.value)ta.value=v});later(50,()=>ta.focus());return}
+     if(kind==='pistas'){let k=0;judge(`🗝️ ${esc(who)}`,`<div class="card big"><div class="w">${esc(label)}</div><div class="hint">Una sola palabra por pista. Si la dicen, ✓.</div></div><div class="chips" id="pk">${[1,2,3].map(i=>`<button class="chip" data-a="pk">Pista ${i}</button>`).join('')}</div>`,45,fin,['✓ ¡Adivinada!','✗ Rendirse']);H.pk=t=>{if(t.classList.contains('on'))return;t.classList.add('on');k++;beep(600,.05);if(k===3){const c=$('#pk');if(c)c.insertAdjacentHTML('afterend','<p class="sub center">Última oportunidad: ¡que digan su respuesta!</p>')}};return}
      if(kind!=='dibujo'){judge(`${T.icon} ${esc(who)}`,`<div class="card big"><div class="w">${esc(label)}</div>${kind==='prohib'?`<div class="forb">${word[1].map(f=>`<span>${esc(f)}</span>`).join('')}</div>`:''}</div>`,secs,fin,['✓ ¡Adivinada!','✗ Rendirse']);return}
      const stop=judge(`✏️ ${esc(who)}`,`<div class="pal">${['#111','#ff4d5e','#3b82f6','#22c58b','#ffb800'].map((c,i)=>`<button data-c="${c}" style="background:${c}" class="${i?'':'on'}"></button>`).join('')}<button data-c="#ffffff" style="background:#fff;outline:1px solid #999"></button><button class="mini" data-clr="1">🗑️</button></div><canvas id="cv" style="height:52vh"></canvas>`,secs,fin,['✓ ¡Adivinado!','✗ Rendirse']);
      const cv=$('#cv'),r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);ctx.fillStyle='#fff';ctx.fillRect(0,0,r.width,r.height);ctx.lineCap='round';ctx.lineJoin='round';let color='#111',size=6,dr=false,lx=0,ly=0;
@@ -2424,7 +2429,7 @@ def({id:'fiesta',icon:'🎉',name:'Fiesta total',c:'#e879f9',min:2,max:20,best:[
      cv.addEventListener('pointermove',e=>{if(!dr)return;const[x,y]=pos(e);ctx.strokeStyle=color;ctx.lineWidth=size;ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(x,y);ctx.stroke();lx=x;ly=y});
      ['pointerup','pointercancel','pointerleave'].forEach(ev=>cv.addEventListener(ev,()=>dr=false))}}))};
    const RUN={
-    mimica:comm('mimica'),dibujo:comm('dibujo'),prohib:comm('prohib'),tararea:comm('tararea'),
+    mimica:comm('mimica'),emojis:comm('emojis'),pistas:comm('pistas'),dibujo:comm('dibujo'),prohib:comm('prohib'),tararea:comm('tararea'),
     pregunta:(t,who,cb)=>{const it=dQ(),ans=it[2],opts=shuffle([ans,...it[3]()]);let left=20;
      screen(g,`<div class="tbar"><span class="who">❓ ${esc(who)} · ${QZ_ICON[it[0]]||''} ${it[0]}</span><span class="timer" id="tm">20</span></div><h2 class="q" style="font-size:23px">${esc(it[1])}</h2><div class="opts">${opts.map((o,i)=>`<button class="opt" data-a="o" data-i="${i}">${esc(o)}</button>`).join('')}</div>`,{o:e=>{st();show(opts[+e.dataset.i])}});
      const show=pick=>{document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(opts[i]===ans)b.classList.add('good');else if(opts[i]===pick)b.classList.add('wrong')});later(1600,()=>cb(pick===ans))};
@@ -2440,6 +2445,9 @@ def({id:'fiesta',icon:'🎉',name:'Fiesta total',c:'#e879f9',min:2,max:20,best:[
    };
    turn()}
   setup()}});
+def({id:'fiestabar',icon:'🍻',name:'Fiesta en el bar',c:'#f59e0b',min:2,max:20,best:[2,12],desc:'Fiesta total sin mímica ni papel: todo sentado y con el móvil.',
+ rules:`<p>Es <b>Fiesta total</b> con pruebas discretas, para jugar en un bar sin levantarse ni hacer el ridículo:</p><p>✏️ Dibujo en la pantalla · 🚫 Prohibidas · 🔣 Emojis (escribes la palabra solo con emojis) · 🗝️ Tres pistas de una palabra · ❓ Pregunta · ⚡ Rapidez · 🛑 Stop · 🔤 Letras · ⭐ Todos juegan</p><p>Mismas reglas: tira el dado, supera la prueba y vuelve a tirar. Gana quien llegue antes a la meta.</p>`,
+ start(){return GAMES.find(x=>x.id==='fiesta').start.call(this,{bar:true})}});
 /* ================= INICIO ================= */
 function home(){clearAll();CUR=null;TOUR=null;const n=S.names.length,ps=P();
  const ok=GAMES.filter(g=>n>=g.min&&n<=g.max),best=ok.filter(g=>n>=g.best[0]&&n<=g.best[1]),also=ok.filter(g=>!best.includes(g)),no=GAMES.filter(g=>!ok.includes(g));
