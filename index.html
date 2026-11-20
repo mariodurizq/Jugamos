@@ -229,6 +229,7 @@ canvas#hk{width:100%;height:calc(100dvh - 130px);min-height:420px;touch-action:n
 .ftg{display:grid;gap:8px;margin:8px 0}
 .ftteam{background:var(--card);border:2px solid;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .ftteam span{color:var(--mut);font-weight:700}
+.buzzbig{display:block;width:100%;margin-top:14px;padding:34px 10px;border-radius:26px;font-family:"Baloo 2";font-size:34px;font-weight:800;color:#fff;background:linear-gradient(135deg,#ff4d5e,#ff9a5c);box-shadow:0 10px 30px -10px #ff4d5e;touch-action:manipulation}.buzzbig:disabled{background:#444;box-shadow:none}
 </style>
 </head>
 <body>
@@ -289,7 +290,7 @@ function boardHTML(sc,low){const arr=Object.entries(sc).sort((a,b)=>low?a[1]-b[1
 /* pantallas */
 let H={},CUR=null;
 app.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a;
-  if(a==='__back'){if(TOUR&&TOUR.playing){TOUR.playing=false;clearAll();tourResult()}else home();return}
+  if(a==='__back'){if(CUR===OG&&ON.code){onLeave();return}if(TOUR&&TOUR.playing){TOUR.playing=false;clearAll();tourResult()}else home();return}
   if(a==='__rules'){rules(CUR);return}
   const f=H[a];if(f)f(t,e)});
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal'||e.target.closest('[data-close]'))$('#modal').innerHTML=''});
@@ -2448,21 +2449,139 @@ def({id:'fiesta',icon:'🎉',name:'Fiesta total',c:'#e879f9',min:2,max:20,best:[
 def({id:'fiestabar',icon:'🍻',name:'Fiesta en el bar',c:'#f59e0b',min:2,max:20,best:[2,12],desc:'Fiesta total sin mímica ni papel: todo sentado y con el móvil.',
  rules:`<p>Es <b>Fiesta total</b> con pruebas discretas, para jugar en un bar sin levantarse ni hacer el ridículo:</p><p>✏️ Dibujo en la pantalla · 🚫 Prohibidas · 🔣 Emojis (escribes la palabra solo con emojis) · 🗝️ Tres pistas de una palabra · ❓ Pregunta · ⚡ Rapidez · 🛑 Stop · 🔤 Letras · ⭐ Todos juegan</p><p>Mismas reglas: tira el dado, supera la prueba y vuelve a tirar. Gana quien llegue antes a la meta.</p>`,
  start(){return GAMES.find(x=>x.id==='fiesta').start.call(this,{bar:true})}});
+/* ================= MODO ONLINE: cada uno con su móvil (Firebase Realtime Database por REST) ================= */
+const FB_URL='https://jugamos-quedadas-default-rtdb.europe-west1.firebasedatabase.app';
+const ON={code:null,me:null,name:'',st:null,es:null,hide:false,ok:false,lock:'',tick:null,decks:{}};
+const OG={icon:'🌐',name:'Partida online',rules:`<p>Cada uno juega desde su propio móvil.</p><ol><li>Una persona crea la sala y comparte el código o el enlace.</li><li>El resto se une con ese código.</li><li>Quien crea la sala es el <b>anfitrión</b>: elige el juego y avanza las rondas.</li></ol><p>Juegos disponibles: El impostor, El espía, La pregunta trampa y Quiz con pulsador.</p><p>Hace falta conexión a internet en todos los móviles.</p>`};
+try{ON.me=sessionStorage.getItem('quedada.uid')}catch(e){}
+if(!ON.me){ON.me=Math.random().toString(36).slice(2,10);try{sessionStorage.setItem('quedada.uid',ON.me)}catch(e){}}
+const fbU=p=>`${FB_URL}/rooms/${ON.code}${p?'/'+p:''}.json`;
+const fbReq=(m,p,v)=>fetch(fbU(p),{method:m,body:v===undefined?undefined:JSON.stringify(v)}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+const fbPut=(p,v)=>fbReq('PUT',p,v),fbPatch=(p,v)=>fbReq('PATCH',p,v),fbDel=p=>fbReq('DELETE',p),fbGet=p=>fbReq('GET',p);
+const TS={'.sv':'timestamp'};
+const genCode=()=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=A[rnd(A.length)];return s};
+const onLink=()=>`${location.origin}${location.pathname}#sala-${ON.code}`;
+const onPlayers=()=>{const p=(ON.st&&ON.st.players)||{};return Object.entries(p).sort((a,b)=>(a[1].t||0)-(b[1].t||0)).map(([id,v])=>({id,n:v.n||'¿?'}))};
+const onName=id=>{const p=onPlayers().find(x=>x.id===id);return p?p.n:'¿?'};
+const isHost=()=>ON.st&&ON.st.host===ON.me;
+function onStop(){if(ON.es){try{ON.es.close()}catch(e){}ON.es=null}if(ON.tick){clearInterval(ON.tick);ON.tick=null}ON.code=null;ON.st=null;ON.lock=''}
+function onSetPath(obj,path,val){const ks=path.split('/').filter(Boolean);if(!ks.length)return val;let o=obj&&typeof obj==='object'?obj:{};const root=o;for(let i=0;i<ks.length-1;i++){if(!o[ks[i]]||typeof o[ks[i]]!=='object')o[ks[i]]={};o=o[ks[i]]}if(val===null)delete o[ks[ks.length-1]];else o[ks[ks.length-1]]=val;return root}
+
+/* ---------- entrar ---------- */
+function onlineHome(pre){onStop();CUR=OG;const nm=(S.names[0]||'').trim();
+ if(!/github\.io$/.test(location.hostname)&&!/^localhost$|^127\./.test(location.hostname)){screen(OG,`<div class="center"><div style="font-size:70px;margin-top:10px">🌐</div><h2 style="margin:10px 0">Solo en la web publicada</h2><p class="sub">Esta vista previa no puede conectarse a internet. Abre <b>mariodurizq.github.io/Jugamos</b> para jugar cada uno con su móvil.</p><a class="btn primary xl" href="https://mariodurizq.github.io/Jugamos/" style="text-decoration:none;text-align:center">Abrir la web</a></div>`);return}
+ screen(OG,`<div class="center"><div style="font-size:64px">🌐</div><p class="sub">Cada uno juega desde su propio móvil.</p></div><p class="lbl">Tu nombre</p><input class="tin" id="onN" maxlength="16" value="${esc(nm)}" placeholder="¿Cómo te llamas?" autocomplete="off">
+  <button class="btn primary xl" data-a="cr" style="margin-top:14px">✨ Crear sala</button>
+  <p class="lbl center" style="margin-top:22px">o únete con un código</p><input class="tin" id="onC" maxlength="6" value="${esc(pre||'')}" placeholder="CÓDIGO" autocomplete="off" style="text-transform:uppercase;text-align:center;font-size:26px;letter-spacing:6px;font-family:'Baloo 2'"><button class="btn xl" data-a="jn">🚪 Unirme</button><p class="sub center" id="onE" style="color:#ff98a2;min-height:22px"></p>`,{
+  cr:()=>onEnter(true),jn:()=>onEnter(false)});
+ if(pre)later(80,()=>{const n=$('#onN');if(n&&!n.value)n.focus()})}
+async function onEnter(create){const n=$('#onN').value.trim(),c=$('#onC').value.trim().toUpperCase(),er=$('#onE');
+ if(!n){er.textContent='Escribe tu nombre.';$('#onN').focus();return}
+ if(!create&&c.length!==6){er.textContent='El código tiene 6 caracteres.';return}
+ S.names[0]=n;save();ON.name=n;er.textContent='Conectando…';
+ try{
+  if(create){ON.code=genCode();await fbPut('',{host:ON.me,created:TS,players:{[ON.me]:{n,t:TS}},state:{g:'lobby'}})}
+  else{ON.code=c;const r=await fbGet('host');if(r===null){ON.code=null;er.textContent='Esa sala no existe. Revisa el código.';return}await fbPut('players/'+ON.me,{n,t:TS})}
+  try{history.replaceState(null,'','#sala-'+ON.code)}catch(e){}
+  onConnect()}catch(e){ON.code=null;er.textContent='No se ha podido conectar. ¿Tienes internet?'}}
+function onConnect(){ON.st=null;const es=new EventSource(fbU(''));ON.es=es;
+ const apply=(ev,merge)=>{try{const d=JSON.parse(ev.data);if(merge){Object.entries(d.data||{}).forEach(([k,v])=>{ON.st=onSetPath(ON.st,(d.path+'/'+k),v)})}else ON.st=onSetPath(ON.st,d.path,d.data);ON.ok=true;onRender()}catch(e){console.log('[online]',e)}};
+ es.addEventListener('put',e=>apply(e,false));es.addEventListener('patch',e=>apply(e,true));
+ es.onerror=()=>{ON.ok=false;const b=$('#onBadge');if(b)b.textContent='🔴 Reconectando…'};
+ if(ON.tick)clearInterval(ON.tick);ON.tick=setInterval(onHostTick,500);
+ screen(OG,`<div class="center"><div style="font-size:60px;margin-top:20vh">📡</div><p class="sub">Conectando con la sala…</p></div>`)}
+
+/* ---------- pintar ---------- */
+function onScreen(body,h){const vals={},act=document.activeElement&&document.activeElement.id;document.querySelectorAll('#app input[id],#app textarea[id]').forEach(i=>vals[i.id]=i.value);
+ screen(OG,`<div class="row" style="margin:-6px 0 8px"><span class="chip" style="padding:4px 10px;font-size:13px" id="onBadge">${ON.ok?'🟢':'🔴'} Sala <b style="letter-spacing:2px">${ON.code}</b></span><span class="sub" style="font-size:13px">${esc(ON.name)}${isHost()?' · 👑 anfitrión':''}</span></div>${body}`,h);
+ Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(el&&!el.value)el.value=v});if(act){const el=document.getElementById(act);if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}}
+function onRender(){if(CUR!==OG||!ON.code)return;const st=ON.st;
+ if(!st||!st.players){onScreen(`<div class="center"><h2 style="margin:20px 0">La sala se ha cerrado</h2><button class="btn primary xl" data-a="h">Volver</button></div>`,{h:()=>{onStop();onlineHome()}});return}
+ if(!st.players[ON.me]){onScreen(`<div class="center"><h2 style="margin:20px 0">Ya no estás en la sala</h2><button class="btn primary xl" data-a="j">Volver a entrar</button><button class="btn" data-a="h">Salir</button></div>`,{j:()=>fbPut('players/'+ON.me,{n:ON.name,t:TS}),h:onLeave});return}
+ const s=st.state||{g:'lobby'};const R=ON_GAMES[s.g];R?R.view.call(R,s):onLobby(s)}
+function onLeave(){const c=ON.code;if(c){fbDel('players/'+ON.me).catch(()=>{})}onStop();try{history.replaceState(null,'',location.pathname)}catch(e){}home()}
+const hostBar=(btns)=>isHost()?`<div style="margin-top:14px">${btns}</div>`:`<p class="sub center" style="margin-top:14px">El anfitrión avanza la partida.</p>`;
+const toLobby=()=>`<button class="btn ghost" data-a="lob">↩️ Volver a la sala</button>`;
+const goLobby=()=>fbPut('state',{g:'lobby'});
+
+function onLobby(){const ps=onPlayers(),host=ON.st.host,hostIn=ps.some(p=>p.id===host);
+ onScreen(`<div class="card"><p class="lbl">Código de la sala</p><div style="font-family:'Baloo 2';font-size:52px;letter-spacing:8px;line-height:1.1;color:var(--yel)">${ON.code}</div><div class="btns" style="margin-top:10px"><button class="btn" data-a="sh">📤 Compartir</button><button class="btn" data-a="cp">📋 Copiar enlace</button></div><p class="sub" id="cpm" style="margin:6px 0 0;min-height:18px"></p></div>
+  <p class="lbl">Jugadores · ${ps.length}</p><div class="chips" style="justify-content:flex-start">${ps.map(p=>`<span class="chip">${p.id===host?'👑 ':''}${esc(p.n)}${p.id===ON.me?' (tú)':''}</span>`).join('')}</div>
+  ${!hostIn?`<button class="btn" data-a="mh">👑 El anfitrión se ha ido: hazte anfitrión</button>`:''}
+  ${isHost()?`<p class="lbl" style="margin-top:16px">Elige juego</p><div class="grid">${Object.entries(ON_GAMES).map(([id,G])=>`<button class="gc ${ps.length<G.min?'off':''}" style="--c:${G.c}" data-a="pg" data-id="${id}">${ps.length<G.min?`<span class="bd">desde ${G.min}</span>`:''}<span class="ic">${G.icon}</span><h4>${G.name}</h4><p>${G.desc}</p></button>`).join('')}</div>`:`<div class="card" style="margin-top:16px"><div style="font-size:44px">⏳</div><p class="sub" style="margin:6px 0 0">Esperando a que ${esc(onName(host))} elija juego…</p></div>`}
+  <button class="btn ghost" data-a="lv">🚪 Salir de la sala</button>`,{
+  sh:async()=>{const url=onLink(),txt=`¡Únete a mi partida de ¿Jugamos? Código ${ON.code}`;try{if(navigator.share){await navigator.share({title:'¿Jugamos?',text:txt,url});return}}catch(e){return}location.href='https://wa.me/?text='+encodeURIComponent(txt+' '+url)},
+  cp:async()=>{try{await navigator.clipboard.writeText(onLink());$('#cpm').textContent='✅ Enlace copiado'}catch(e){$('#cpm').textContent=onLink()}},
+  mh:()=>fbPut('host',ON.me),lv:onLeave,
+  pg:t=>{const G=ON_GAMES[t.dataset.id];if(ps.length<G.min){vib(60);return}G.setup()}})}
+
+/* ---------- tic del anfitrión (decide carreras y tiempos) ---------- */
+function onHostTick(){if(!ON.st||!isHost())return;const s=ON.st.state||{};const G=ON_GAMES[s.g];if(G&&G.tick)G.tick(s)}
+
+/* ---------- juegos online ---------- */
+const roleCard=(inner)=>ON.hide?`<button class="card big" data-a="hd" style="width:100%"><div style="font-size:50px">🙈</div><div class="hint">Toca para ver tu papel</div></button>`:`<div class="card big" style="position:relative">${inner}<button class="mini" data-a="hd" style="position:absolute;top:10px;right:10px">🙈 Ocultar</button></div>`;
+const hd=()=>{ON.hide=!ON.hide;onRender()};
+const ON_GAMES={
+ impostor:{icon:'🕵️',name:'El impostor',c:'#64748b',min:3,desc:'Todos saben la palabra menos el impostor.',
+  setup(){const ps=onPlayers(),cat=CATS[rnd(CATS.length)],word=cat.items[rnd(cat.items.length)],k=ps.length>=7?2:1,imp={};shuffle(ps.slice()).slice(0,k).forEach(p=>imp[p.id]=true);ON.hide=false;
+   fbPut('state',{g:'impostor',r:Date.now(),word,cname:cat.icon+' '+cat.name,imp,first:ps[rnd(ps.length)].n,phase:'play'})},
+  view(s){const me=!!(s.imp&&s.imp[ON.me]),names=Object.keys(s.imp||{}).map(onName);
+   if(s.phase==='reveal'){onScreen(`<div class="center"><p class="lbl">${names.length>1?'Los impostores eran':'El impostor era'}</p><h1 style="font-size:42px;color:var(--bad)">${names.map(esc).join(' y ')}</h1><p class="lbl" style="margin-top:14px">La palabra era</p><div class="secret">${esc(s.word)}</div></div>${hostBar(`<button class="btn primary xl" data-a="re">Otra ronda</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby});return}
+   onScreen(`${roleCard(me?`<div style="font-size:70px">🕵️</div><h1 style="font-size:36px;color:var(--bad)">Eres el IMPOSTOR</h1><p class="sub">Categoría: <b>${s.cname}</b></p>`:`<p class="lbl">La palabra secreta es</p><div class="w">${esc(s.word)}</div><p class="sub">No la digas. Da pistas sutiles.</p>`)}<p class="sub center">Empieza <b style="color:var(--yel)">${esc(s.first)}</b>. Por turnos, decid una palabra relacionada y luego votad.</p>${hostBar(`<button class="btn primary xl" data-a="rv">Revelar impostor</button>${toLobby()}`)}`,{hd,rv:()=>fbPatch('state',{phase:'reveal'}),lob:goLobby})}},
+ espia:{icon:'🕶️',name:'El espía',c:'#0f766e',min:3,desc:'Todos saben dónde estáis menos el espía.',
+  setup(){const ps=onPlayers();ON.hide=false;fbPut('state',{g:'espia',r:Date.now(),place:LUGARES[rnd(LUGARES.length)],spy:ps[rnd(ps.length)].id,first:ps[rnd(ps.length)].n,phase:'play'})},
+  view(s){const me=s.spy===ON.me;
+   if(s.phase==='reveal'){onScreen(`<div class="center"><p class="lbl">El espía era</p><h1 style="font-size:42px;color:var(--bad)">${esc(onName(s.spy))}</h1><p class="lbl" style="margin-top:14px">Estabais en</p><div class="secret">${esc(s.place)}</div></div>${hostBar(`<button class="btn primary xl" data-a="re">Otra ronda</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby});return}
+   onScreen(`${roleCard(me?`<div style="font-size:70px">🕶️</div><h1 style="font-size:36px;color:var(--bad)">Eres el ESPÍA</h1><p class="sub">Averigua dónde estáis sin que te pillen.</p>`:`<p class="lbl">Estáis en</p><div class="w">${esc(s.place)}</div><p class="sub">Descubre al espía sin revelar el lugar.</p>`)}<p class="sub center">Empieza <b style="color:var(--yel)">${esc(s.first)}</b> preguntando a quien quiera.</p><p class="lbl">Lugares posibles</p><ul class="log">${LUGARES.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>${hostBar(`<button class="btn primary xl" data-a="rv">Revelar espía</button>${toLobby()}`)}`,{hd,rv:()=>fbPatch('state',{phase:'reveal'}),lob:goLobby})}},
+ trampa:{icon:'❓',name:'La pregunta trampa',c:'#7c3aed',min:3,desc:'Todos responden en su móvil… uno tenía otra pregunta.',
+  setup(){const ps=onPlayers();const d=ON.decks.tr||(ON.decks.tr=deck(TRAMPA));fbPut('state',{g:'trampa',r:Date.now(),q:d(),odd:ps[rnd(ps.length)].id,phase:'write'})},
+  view(s){const ps=onPlayers(),ans=s.ans||{},mine=ans[ON.me],nAns=ps.filter(p=>ans[p.id]).length;
+   if(s.phase==='write'){onScreen(`<div class="card big"><p class="lbl">Tu pregunta</p><div class="txt">${esc(s.q[s.odd===ON.me?1:0])}</div></div>${mine?`<div class="card"><p class="lbl">Tu respuesta</p><div class="txt">${esc(mine)}</div><p class="sub" style="margin:6px 0 0">Esperando al resto…</p></div>`:`<textarea class="tin" id="trA" rows="2" maxlength="80" placeholder="Escribe tu respuesta"></textarea><button class="btn primary xl" data-a="sd">Enviar respuesta</button>`}<p class="stats center">Han respondido ${nAns} de ${ps.length}</p>${isHost()?`<button class="btn ${nAns>=ps.length?'primary xl':''}" data-a="go">Ver respuestas${nAns<ps.length?' (sin esperar)':''}</button>${toLobby()}`:''}`,{
+     sd:()=>{const v=$('#trA').value.trim();if(!v)return;fbPut('state/ans/'+ON.me,v);beep(700,.05)},go:()=>fbPatch('state',{phase:'show'}),lob:goLobby});return}
+   const list=`<ol class="board">${ps.map(p=>`<li><span>${esc(p.n)}</span><b style="font-family:Nunito;font-size:16px">${esc(ans[p.id]||'—')}</b></li>`).join('')}</ol>`;
+   if(s.phase==='show'){onScreen(`<p class="lbl">La pregunta real era</p><div class="card"><div class="txt">${esc(s.q[0])}</div></div>${list}<p class="sub center">Alguien respondía a otra pregunta. Justificad vuestras respuestas y votad.</p>${hostBar(`<button class="btn primary xl" data-a="rv">Revelar quién tenía la trampa</button>${toLobby()}`)}`,{rv:()=>fbPatch('state',{phase:'reveal'}),lob:goLobby});return}
+   onScreen(`<div class="center"><p class="lbl">Tenía la pregunta trampa</p><h1 style="font-size:42px;color:var(--bad)">${esc(onName(s.odd))}</h1><p class="lbl">Su pregunta era</p><div class="card"><div class="txt">${esc(s.q[1])}</div></div></div>${list}${hostBar(`<button class="btn primary xl" data-a="re">Otra ronda</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby})}},
+ quiz:{icon:'🔔',name:'Quiz con pulsador',c:'#f59e0b',min:2,desc:'Cada uno pulsa en su móvil: responde el más rápido.',
+  setup(){const cats=[...new Set(QZ.map(q=>q[0]))];onScreen(`<p class="lbl">Gana quien llegue a…</p><div class="seg">${[5,10,15].map(v=>`<button data-a="gl" data-v="${v}">${v} puntos</button>`).join('')}</div><p class="sub">Acierto +1, fallo −1. Quien pulse antes tiene 10 segundos para responder.</p><p class="lbl">Categoría</p><div class="cats"><button data-a="c" data-id="mix" class="on">🎲 Mezcla</button>${cats.map(c=>`<button data-a="c" data-id="${c}">${QZ_ICON[c]||''} ${c}</button>`).join('')}</div>${toLobby()}`,{
+    gl:t=>{const sc={};onPlayers().forEach(p=>sc[p.id]=0);ON.qcat=ON.qcat||'mix';fbPut('state',{g:'quiz',goal:+t.dataset.v,cat:ON.qcat,n:0,sc,phase:'pre'}).then(()=>this.next({cat:ON.qcat,n:0}))},
+    c:t=>{ON.qcat=t.dataset.id;document.querySelectorAll('[data-a=c]').forEach(b=>b.classList.toggle('on',b===t))},lob:goLobby})},
+  next(o0){const s=o0||ON.st.state;const cat=s.cat||'mix',key='qz_'+cat;if(!ON.decks[key])ON.decks[key]=deck(cat==='mix'?QZ:QZ.filter(q=>q[0]===cat));const it=ON.decks[key](),o=shuffle([it[2],...it[3]()]);
+   fbPatch('state',{phase:'ask',n:(s.n||0)+1,q:{t:it[1],o,a:o.indexOf(it[2]),c:it[0]},buzz:null,who:null,pick:null,t0:null,msg:null})},
+  tick(s){if(s.phase==='ask'&&s.buzz&&!s.who){const k='bz'+s.n;if(ON.lock===k)return;ON.lock=k;setTimeout(()=>{const b=(ON.st.state||{}).buzz||{};const w=Object.entries(b).sort((x,y)=>x[1]-y[1])[0];if(w)fbPatch('state',{phase:'answer',who:w[0],t0:Date.now()})},450)}
+   if(s.phase==='answer'){const done=s.pick!==undefined&&s.pick!==null,late=Date.now()-(s.t0||0)>10500;if(done||late){const k='an'+s.n;if(ON.lock===k)return;ON.lock=k;const ok=done&&s.pick===s.q.a,sc=Object.assign({},s.sc||{});sc[s.who]=(sc[s.who]||0)+(ok?1:-1);
+     const end=Object.values(sc).some(v=>v>=s.goal);fbPatch('state',{phase:end?'end':'result',sc,res:ok?'ok':done?'bad':'late'})}}},
+  view(s){const ps=onPlayers(),sc=s.sc||{},q=s.q||{o:[]};
+   const board=()=>{const o={};ps.forEach(p=>o[p.n]=sc[p.id]||0);return boardHTML(o)};
+   const opts=(click,shown)=>`<div class="opts">${q.o.map((x,i)=>click?`<button class="opt" data-a="o" data-i="${i}">${esc(x)}</button>`:`<div class="opt ${shown&&i===q.a?'good':shown&&i===s.pick?'wrong':''}">${esc(x)}</div>`).join('')}</div>`;
+   const head=`<p class="lbl">Pregunta ${s.n} · ${QZ_ICON[q.c]||''} ${q.c||''} · gana quien llegue a ${s.goal}</p><h2 class="q" style="font-size:23px">${esc(q.t||'')}</h2>`;
+   if(s.phase==='pre'){onScreen(`<div class="center"><p class="sub">Preparando la primera pregunta…</p></div>`);return}
+   if(s.phase==='ask'){const mine=s.buzz&&s.buzz[ON.me];onScreen(`${head}${opts(false,false)}<button class="buzzbig" data-a="bz" ${mine?'disabled':''}>${mine?'⏳ Has pulsado…':'🔔 ¡LA SÉ!'}</button>${hostBar(`<button class="btn" data-a="nx">Nadie la sabe · siguiente</button>${toLobby()}`)}`,{
+     bz:()=>{if(mine)return;fbPut('state/buzz/'+ON.me,TS);beep(900,.15);vib(40)},nx:()=>this.next(),lob:goLobby});
+    const b=document.querySelector('.buzzbig');if(b)b.addEventListener('pointerdown',e=>{e.preventDefault();if(b.disabled)return;b.disabled=true;b.textContent='⏳ Has pulsado…';fbPut('state/buzz/'+ON.me,TS);beep(900,.15);vib(40)});return}
+   if(s.phase==='answer'){const me=s.who===ON.me,left=Math.max(0,10-Math.floor((Date.now()-(ON.ansSeen&&ON.ansSeen.n===s.n?ON.ansSeen.t:(ON.ansSeen={n:s.n,t:Date.now()}).t))/1000));
+    onScreen(`<div class="tbar"><span class="who">🔔 ${me?'¡Respondes tú!':esc(onName(s.who))+' responde…'}</span><span class="timer" id="tm">${left}</span></div>${head}${opts(me&&s.pick==null,false)}`,{o:t=>{if(!me)return;fbPatch('state',{pick:+t.dataset.i});beep(700,.05)}});
+    const st=every(1000,()=>{const tm=$('#tm');if(!tm){st();return}const l=Math.max(0,10-Math.floor((Date.now()-ON.ansSeen.t)/1000));tm.textContent=l;if(l<=3)tm.classList.add('hot')});return}
+   const w=s.who?onName(s.who):null,msg=s.res==='ok'?`✅ ¡Correcto, ${esc(w)}!`:s.res==='bad'?`❌ ¡Fallo! −1 para ${esc(w)}`:s.res==='late'?`⏰ ¡Tiempo! −1 para ${esc(w)}`:'La respuesta era…';
+   if(s.res==='ok'&&ON.lastRes!==s.n){ON.lastRes=s.n;confetti();beep(880,.2)}
+   if(s.phase==='end'){const top=ps.slice().sort((a,b)=>(sc[b.id]||0)-(sc[a.id]||0))[0];if(ON.lastEnd!==s.n){ON.lastEnd=s.n;confetti();later(500,confetti)}
+    onScreen(`<h2 class="center" style="font-size:24px;margin:6px 0">${msg}</h2>${opts(false,true)}<div class="win-msg" style="font-size:22px;margin-top:14px">🏆 ¡${esc(top.n)} gana la partida!</div>${board()}${hostBar(`<button class="btn primary xl" data-a="re">Otra partida</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby});return}
+   onScreen(`<h2 class="center" style="font-size:24px;margin:6px 0">${msg}</h2>${head}${opts(false,true)}<h3 style="margin-top:12px">Marcador</h3>${board()}${hostBar(`<button class="btn primary xl" data-a="nx">Siguiente pregunta</button>${toLobby()}`)}`,{nx:()=>this.next(),lob:goLobby})}}
+};
 /* ================= INICIO ================= */
-function home(){clearAll();CUR=null;TOUR=null;const n=S.names.length,ps=P();
+function home(){clearAll();onStop();CUR=null;TOUR=null;const n=S.names.length,ps=P();
  const ok=GAMES.filter(g=>n>=g.min&&n<=g.max),best=ok.filter(g=>n>=g.best[0]&&n<=g.best[1]),also=ok.filter(g=>!best.includes(g)),no=GAMES.filter(g=>!ok.includes(g));
  const card=(g,off)=>`<button class="gc ${off?'off':''}" style="--c:${g.c}" data-a="${off?'nope':'open'}" data-id="${g.id}">${off?`<span class="bd">${n<g.min?'desde '+g.min:'solo '+g.max}</span>`:g.best[0]<=2&&g.best[1]<=3&&n===2?'<span class="star">Ideal 2</span>':''}<span class="ic">${g.icon}</span><h4>${g.name}</h4><p>${g.desc}</p></button>`;
  H={
   minus:()=>{if(S.names.length>2){S.names.pop();save();home()}},
   plus:()=>{if(S.names.length<20){S.names.push('');save();home();setTimeout(()=>{const ins=document.querySelectorAll('.names input');ins[ins.length-1]&&ins[ins.length-1].focus()},50)}},
-  tour:()=>intro(GAMES.find(g=>g.id==='torneo')),open:t=>intro(GAMES.find(g=>g.id===t.dataset.id)),
+  online:()=>onlineHome(),tour:()=>intro(GAMES.find(g=>g.id==='torneo')),open:t=>intro(GAMES.find(g=>g.id===t.dataset.id)),
   nope:t=>{const g=GAMES.find(x=>x.id===t.dataset.id);vib(60);rules(g)},
   rand:()=>{if(!ok.length)return;const el=$('#rand');let k=0;const pool=(best.length?best:ok).filter(g=>g.id!=='torneo'&&g.id!=='ruleta');const st=every(90,()=>{const g=pool[k++%pool.length];el.textContent=g.icon+' '+g.name;beep(400+(k%5)*80,.03);if(k>14+rnd(pool.length)){st();vib(60);setTimeout(()=>intro(g),500)}})}
  };
  app.innerHTML=`<header class="hero"><div class="logo">🎲</div><h1>¿Jugamos?</h1><p>${GAMES.length} juegos para quedadas · un solo móvil</p></header>
  <section class="panel"><div class="row"><h3>¿Cuántos sois?</h3><div class="stepper"><button data-a="minus" aria-label="Menos">−</button><b>${n}</b><button data-a="plus" aria-label="Más">+</button></div></div>
  <div class="names">${S.names.map((v,i)=>`<input data-i="${i}" value="${esc(v)}" placeholder="Jugador ${i+1}" maxlength="16" autocomplete="off">`).join('')}</div></section>
- <button class="random" data-a="rand" id="rand">🎰 ¡Que elija la app!</button><button class="btn" data-a="tour" style="border-color:#ca8a04">🏆 Modo torneo</button>
+ <button class="random" data-a="rand" id="rand">🎰 ¡Que elija la app!</button><button class="btn" data-a="tour" style="border-color:#ca8a04">🏆 Modo torneo</button><button class="btn" data-a="online" style="border-color:#3fd6ff">🌐 Jugar cada uno con su móvil</button>
  ${best.length?`<div class="sec"><h3>${n===2?'Perfectos para dos':'Perfectos para '+n}</h3><span>${best.length}</span></div><div class="grid">${best.map(g=>card(g)).join('')}</div>`:''}
  ${also.length?`<div class="sec"><h3>También funcionan</h3><span>${also.length}</span></div><div class="grid">${also.map(g=>card(g)).join('')}</div>`:''}
  ${no.length?`<div class="sec"><h3>${no.some(g=>n<g.min)?'Necesitáis más gente':'No disponibles'}</h3><span>${no.length}</span></div><div class="grid">${no.map(g=>card(g,true)).join('')}</div>`:''}
@@ -2472,6 +2591,7 @@ function home(){clearAll();CUR=null;TOUR=null;const n=S.names.length,ps=P();
 }
 function intro(g){screen(g,`<div class="intro"><div class="ic">${g.icon}</div><h1>${g.name}</h1><div class="tags"><span class="tag">👥 ${g.min===g.max?g.min:g.min+(g.max>=16?'+':'–'+g.max)} jugadores</span><span class="tag">⭐ Mejor con ${g.best[0]===g.best[1]?g.best[0]:g.best[0]+'–'+g.best[1]}</span></div><div class="rules">${g.rules}</div><button class="btn primary xl" data-a="go">¡A jugar!</button></div>`,{go:()=>{beep(700,.05);g.start()}})}
 home();
+(()=>{const m=location.hash.match(/^#sala-([A-Z0-9]{6})$/i);if(m)onlineHome(m[1].toUpperCase())})();
 </script>
 </body>
 </html>
