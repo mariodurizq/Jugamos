@@ -230,6 +230,17 @@ canvas#hk{width:100%;height:calc(100dvh - 130px);min-height:420px;touch-action:n
 .ftteam{background:var(--card);border:2px solid;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .ftteam span{color:var(--mut);font-weight:700}
 .buzzbig{display:block;width:100%;margin-top:14px;padding:34px 10px;border-radius:26px;font-family:"Baloo 2";font-size:34px;font-weight:800;color:#fff;background:linear-gradient(135deg,#ff4d5e,#ff9a5c);box-shadow:0 10px 30px -10px #ff4d5e;touch-action:manipulation}.buzzbig:disabled{background:#444;box-shadow:none}
+.qa-card{background:linear-gradient(160deg,#27306f,#1b1e47 70%);border:1px solid var(--line);border-radius:28px;padding:26px 20px;margin:12px 0;text-align:center;box-shadow:0 20px 40px -24px #000}
+.qa-q{font-family:"Baloo 2";font-size:clamp(24px,6.5vw,32px);line-height:1.2}
+.qa-a{max-height:0;opacity:0;overflow:hidden;transform:translateY(10px) scale(.96);transition:all .45s cubic-bezier(.2,1.4,.4,1)}
+.qa-a.show{max-height:300px;opacity:1;transform:none;margin-top:18px;padding-top:16px;border-top:2px dashed rgba(255,210,63,.5)}
+.qa-a div{font-family:"Baloo 2";font-size:clamp(26px,7.5vw,38px);line-height:1.15;color:var(--yel);text-shadow:0 0 24px rgba(255,210,63,.35)}
+.qa-btn{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:22px 12px;border-radius:24px;font-family:"Baloo 2";font-size:26px;font-weight:800;color:#2a1400;background:linear-gradient(135deg,#ffd23f,#ff9a5c 55%,#ff5c8a);box-shadow:0 12px 30px -10px #ff9a5c,inset 0 -4px 0 rgba(0,0,0,.15);overflow:hidden;animation:qaPulse 1.8s ease-in-out infinite}
+.qa-btn span{font-size:30px}
+.qa-btn::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:qaShine 2.4s ease-in-out infinite}
+.qa-btn:active{transform:scale(.96)}
+@keyframes qaPulse{50%{transform:scale(1.03);box-shadow:0 16px 40px -8px #ff9a5c,inset 0 -4px 0 rgba(0,0,0,.15)}}
+@keyframes qaShine{0%{left:-60%}60%,100%{left:130%}}
 </style>
 </head>
 <body>
@@ -2567,6 +2578,2231 @@ const ON_GAMES={
     onScreen(`<h2 class="center" style="font-size:24px;margin:6px 0">${msg}</h2>${opts(false,true)}<div class="win-msg" style="font-size:22px;margin-top:14px">🏆 ¡${esc(top.n)} gana la partida!</div>${board()}${hostBar(`<button class="btn primary xl" data-a="re">Otra partida</button>${toLobby()}`)}`,{re:()=>this.setup(),lob:goLobby});return}
    onScreen(`<h2 class="center" style="font-size:24px;margin:6px 0">${msg}</h2>${head}${opts(false,true)}<h3 style="margin-top:12px">Marcador</h3>${board()}${hostBar(`<button class="btn primary xl" data-a="nx">Siguiente pregunta</button>${toLobby()}`)}`,{nx:()=>this.next(),lob:goLobby})}}
 };
+/* ================= BANCO DE PREGUNTAS DE RESPUESTA LIBRE ================= */
+const QA=[];
+(()=>{
+const L=s=>s.trim().split('\n').map(l=>l.trim()).filter(Boolean).map(l=>l.split('|'));
+const add=(cat,rows,fq)=>rows.forEach(r=>QA.push([cat,fq?fq(r[0]):r[0],fq?r[1]:r[1]]));
+const addR=(cat,rows,rq)=>rows.forEach(r=>QA.push([cat,rq(r[1]),r[0]]));
+const th=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+
+/* ---------- Geografía ---------- */
+const GEN=L(`
+Alemania|alemán
+Argentina|argentino
+Australia|australiano
+Austria|austriaco
+Bélgica|belga
+Bolivia|boliviano
+Brasil|brasileño
+Bulgaria|búlgaro
+Canadá|canadiense
+Chile|chileno
+China|chino
+Corea del Sur|surcoreano
+Costa Rica|costarricense
+Croacia|croata
+Cuba|cubano
+Dinamarca|danés
+Ecuador|ecuatoriano
+Egipto|egipcio
+El Salvador|salvadoreño
+Escocia|escocés
+Eslovaquia|eslovaco
+Eslovenia|esloveno
+Estados Unidos|estadounidense
+Estonia|estonio
+Etiopía|etíope
+Filipinas|filipino
+Finlandia|finlandés
+Francia|francés
+Gales|galés
+Grecia|griego
+Guatemala|guatemalteco
+Honduras|hondureño
+Hungría|húngaro
+India|indio
+Indonesia|indonesio
+Irak|iraquí
+Irán|iraní
+Irlanda|irlandés
+Islandia|islandés
+Israel|israelí
+Italia|italiano
+Jamaica|jamaicano
+Japón|japonés
+Kenia|keniano
+Letonia|letón
+Líbano|libanés
+Lituania|lituano
+Luxemburgo|luxemburgués
+Marruecos|marroquí
+México|mexicano
+Mónaco|monegasco
+Mongolia|mongol
+Nicaragua|nicaragüense
+Nigeria|nigeriano
+Noruega|noruego
+Nueva Zelanda|neozelandés
+Países Bajos|neerlandés
+Pakistán|pakistaní
+Panamá|panameño
+Paraguay|paraguayo
+Perú|peruano
+Polonia|polaco
+Portugal|portugués
+Puerto Rico|puertorriqueño
+República Checa|checo
+República Dominicana|dominicano
+Rumanía|rumano
+Rusia|ruso
+Senegal|senegalés
+Serbia|serbio
+Singapur|singapurense
+Siria|sirio
+Sudáfrica|sudafricano
+Suecia|sueco
+Suiza|suizo
+Tailandia|tailandés
+Túnez|tunecino
+Turquía|turco
+Ucrania|ucraniano
+Uruguay|uruguayo
+Venezuela|venezolano
+Vietnam|vietnamita
+Andorra|andorrano
+Argelia|argelino
+Arabia Saudí|saudí
+Afganistán|afgano
+Albania|albanés
+Angola|angoleño
+Armenia|armenio
+Bangladés|bangladesí
+Bielorrusia|bielorruso
+Camerún|camerunés
+Catar|catarí
+Chipre|chipriota
+Ghana|ghanés
+Georgia|georgiano
+Haití|haitiano
+Jordania|jordano
+Kazajistán|kazajo
+Libia|libio
+Madagascar|malgache
+Malasia|malasio
+Malta|maltés
+Mozambique|mozambiqueño
+Nepal|nepalí
+Somalia|somalí
+Sudán|sudanés
+Tanzania|tanzano
+Uganda|ugandés
+Uzbekistán|uzbeko
+Yemen|yemení
+Zimbabue|zimbabuense
+Cabo Verde|caboverdiano
+Montenegro|montenegrino
+Moldavia|moldavo
+Kuwait|kuwaití
+Omán|omaní
+Camboya|camboyano
+Fiyi|fiyiano
+Belice|beliceño
+Groenlandia|groenlandés
+Inglaterra|inglés
+Bosnia y Herzegovina|bosnio
+Macedonia del Norte|macedonio`);
+add('Geografía',GEN,k=>`¿Cómo se llama a una persona de ${k}?`);
+addR('Geografía',GEN,v=>`¿De dónde es una persona «${v}»?`);
+add('Geografía',L(`
+Sídney|Australia
+Melbourne|Australia
+Toronto|Canadá
+Vancouver|Canadá
+Montreal|Canadá
+Quebec|Canadá
+Calgary|Canadá
+Nueva York|Estados Unidos
+Los Ángeles|Estados Unidos
+Chicago|Estados Unidos
+San Francisco|Estados Unidos
+Miami|Estados Unidos
+Las Vegas|Estados Unidos
+Boston|Estados Unidos
+Seattle|Estados Unidos
+Houston|Estados Unidos
+Nueva Orleans|Estados Unidos
+Honolulu|Estados Unidos
+Río de Janeiro|Brasil
+São Paulo|Brasil
+Salvador de Bahía|Brasil
+Rosario|Argentina
+Mendoza|Argentina
+Ushuaia|Argentina
+Valparaíso|Chile
+Medellín|Colombia
+Cali|Colombia
+Cartagena de Indias|Colombia
+Monterrey|México
+Cancún|México
+Acapulco|México
+Tijuana|México
+Guayaquil|Ecuador
+Cuzco|Perú
+Arequipa|Perú
+Santa Cruz de la Sierra|Bolivia
+Punta del Este|Uruguay
+Maracaibo|Venezuela
+Varadero|Cuba
+Santiago de Cuba|Cuba
+Punta Cana|República Dominicana
+Milán|Italia
+Venecia|Italia
+Florencia|Italia
+Nápoles|Italia
+Turín|Italia
+Verona|Italia
+Pisa|Italia
+Bolonia|Italia
+Marsella|Francia
+Lyon|Francia
+Niza|Francia
+Burdeos|Francia
+Toulouse|Francia
+Estrasburgo|Francia
+Múnich|Alemania
+Hamburgo|Alemania
+Fráncfort|Alemania
+Colonia|Alemania
+Stuttgart|Alemania
+Dresde|Alemania
+Mánchester|Reino Unido
+Liverpool|Reino Unido
+Edimburgo|Reino Unido
+Glasgow|Reino Unido
+Oxford|Reino Unido
+Belfast|Reino Unido
+Oporto|Portugal
+Coímbra|Portugal
+Braga|Portugal
+Salzburgo|Austria
+Innsbruck|Austria
+Ginebra|Suiza
+Zúrich|Suiza
+Basilea|Suiza
+Lucerna|Suiza
+Róterdam|Países Bajos
+La Haya|Países Bajos
+Amberes|Bélgica
+Brujas|Bélgica
+Gante|Bélgica
+Cracovia|Polonia
+Gdansk|Polonia
+San Petersburgo|Rusia
+Estambul|Turquía
+Esmirna|Turquía
+Salónica|Grecia
+Dubrovnik|Croacia
+Split|Croacia
+Gotemburgo|Suecia
+Bergen|Noruega
+Cork|Irlanda
+Marrakech|Marruecos
+Casablanca|Marruecos
+Fez|Marruecos
+Tánger|Marruecos
+Alejandría|Egipto
+Luxor|Egipto
+Ciudad del Cabo|Sudáfrica
+Johannesburgo|Sudáfrica
+Lagos|Nigeria
+Zanzíbar|Tanzania
+Bombay|India
+Calcuta|India
+Bangalore|India
+Agra|India
+Shanghái|China
+Hong Kong|China
+Cantón|China
+Osaka|Japón
+Kioto|Japón
+Hiroshima|Japón
+Busan|Corea del Sur
+Ho Chi Minh|Vietnam
+Phuket|Tailandia
+Bali|Indonesia
+Dubái|Emiratos Árabes Unidos
+Tel Aviv|Israel
+La Meca|Arabia Saudí
+Auckland|Nueva Zelanda`),k=>`¿En qué país está ${k}?`);
+add('Geografía',L(`
+la Torre de Pisa|Italia
+el Cristo Redentor|Brasil (Río de Janeiro)
+la Ópera de Sídney|Australia
+Chichén Itzá|México
+Teotihuacán|México
+Stonehenge|Reino Unido (Inglaterra)
+la Acrópolis|Grecia (Atenas)
+la Puerta de Brandeburgo|Alemania (Berlín)
+el castillo de Neuschwanstein|Alemania
+la Gran Muralla|China
+la Ciudad Prohibida|China (Pekín)
+el Kremlin|Rusia (Moscú)
+la catedral de San Basilio|Rusia (Moscú)
+el Burj Khalifa|Emiratos Árabes Unidos (Dubái)
+la isla de Pascua y sus moáis|Chile
+la Torre CN|Canadá (Toronto)
+el puente Golden Gate|Estados Unidos (San Francisco)
+el monte Rushmore|Estados Unidos
+el Gran Cañón del Colorado|Estados Unidos
+las cataratas del Niágara|Entre Canadá y Estados Unidos
+las cataratas de Iguazú|Entre Argentina y Brasil
+el Atomium|Bélgica (Bruselas)
+el Manneken Pis|Bélgica (Bruselas)
+la estatua de la Sirenita|Dinamarca (Copenhague)
+Santa Sofía|Turquía (Estambul)
+la Capadocia|Turquía
+el templo de Abu Simbel|Egipto
+el Valle de los Reyes|Egipto
+el monte Fuji|Japón
+el Pabellón Dorado (Kinkaku-ji)|Japón (Kioto)
+Uluru|Australia
+la Torre de Belém|Portugal (Lisboa)
+el Mont Saint-Michel|Francia
+el palacio de Versalles|Francia
+la Fontana di Trevi|Italia (Roma)
+Pompeya|Italia
+el puente de Carlos|República Checa (Praga)
+el castillo de Edimburgo|Reino Unido (Escocia)
+el palacio de Buckingham|Reino Unido (Londres)
+el Museo del Louvre|Francia (París)
+el Arco del Triunfo de la Étoile|Francia (París)
+la plaza de San Marcos|Italia (Venecia)
+el Coliseo de El Djem|Túnez
+el Fuerte Rojo de Agra|India
+el Salar de Uyuni|Bolivia
+el lago Titicaca|Entre Perú y Bolivia
+las líneas de Nazca|Perú
+el glaciar Perito Moreno|Argentina
+las islas Galápagos|Ecuador
+el canal de Panamá|Panamá
+la bahía de Ha Long|Vietnam
+el Everest|Entre Nepal y China
+la Torre Eiffel|Francia (París)
+la Mezquita Azul|Turquía (Estambul)
+el Partenón|Grecia (Atenas)`),k=>`¿En qué país está ${k}?`);
+add('Geografía',L(`
+la Ciudad de las Artes y las Ciencias|Valencia
+la catedral que guarda los restos del apóstol Santiago|Santiago de Compostela
+la muralla medieval completa más famosa de España|Ávila
+las Casas Colgadas|Cuenca
+el teatro romano mejor conservado de España|Mérida
+la Torre del Oro|Sevilla
+la Plaza de España con bancos de azulejos de las provincias|Sevilla
+el Alcázar con forma de proa de barco|Segovia
+la playa de La Concha|San Sebastián
+el Puente Nuevo sobre el Tajo|Ronda
+el Palacio Real|Madrid
+la catedral gótica conocida como «Pulchra Leonina»|León
+el monasterio de El Escorial|San Lorenzo de El Escorial (Madrid)
+el Museo Dalí|Figueres
+la Lonja de la Seda|Valencia
+la Ciudad Encantada|Cuenca
+el Museo del Prado|Madrid
+el Templo de Debod|Madrid
+la catedral de Burgos|Burgos
+el Park Güell|Barcelona
+la Casa Batlló|Barcelona
+la catedral de La Seo junto al mar|Palma de Mallorca
+el castillo de Loarre|Huesca
+la plaza del Obradoiro|Santiago de Compostela
+la playa de las Catedrales|Ribadeo (Lugo)
+el Caminito del Rey|Málaga (El Chorro)
+la Torre de Hércules|A Coruña
+el puente colgante de Vizcaya|Portugalete y Getxo (Vizcaya)
+el Monasterio de Piedra|Zaragoza (Nuévalos)
+el Kursaal|San Sebastián`),k=>`¿Dónde está ${k}?`);
+add('Geografía',L(`
+Vigo|Pontevedra
+Gijón|Asturias
+Jerez de la Frontera|Cádiz
+Marbella|Málaga
+Benidorm|Alicante
+Elche|Alicante
+Cartagena|Murcia
+Lorca|Murcia
+Ferrol|A Coruña
+Santiago de Compostela|A Coruña
+Ponferrada|León
+Astorga|León
+Aranjuez|Madrid
+Alcalá de Henares|Madrid
+Getafe|Madrid
+Talavera de la Reina|Toledo
+Puertollano|Ciudad Real
+Mérida|Badajoz
+Plasencia|Cáceres
+Trujillo|Cáceres
+Algeciras|Cádiz
+Ronda|Málaga
+Antequera|Málaga
+Úbeda|Jaén
+Baeza|Jaén
+Linares|Jaén
+Motril|Granada
+Guadix|Granada
+El Ejido|Almería
+Écija|Sevilla
+Dos Hermanas|Sevilla
+Sabadell|Barcelona
+Terrassa|Barcelona
+Badalona|Barcelona
+Sitges|Barcelona
+Figueres|Girona
+Lloret de Mar|Girona
+Reus|Tarragona
+Salou|Tarragona
+Calatayud|Zaragoza
+Jaca|Huesca
+Barbastro|Huesca
+Alcañiz|Teruel
+Tudela|Navarra
+Irún|Guipúzcoa
+Getxo|Vizcaya
+Barakaldo|Vizcaya
+Torrelavega|Cantabria
+Avilés|Asturias
+Miranda de Ebro|Burgos
+Aranda de Duero|Burgos
+Medina del Campo|Valladolid
+Tordesillas|Valladolid
+Benavente|Zamora
+Béjar|Salamanca
+Ciudad Rodrigo|Salamanca
+Gandía|Valencia
+Sagunto|Valencia
+Alcoy|Alicante
+Orihuela|Alicante
+Villarreal|Castellón
+Benicarló|Castellón
+Manacor|Baleares
+Mahón|Baleares
+Arrecife|Las Palmas
+La Laguna|Santa Cruz de Tenerife
+Puerto de la Cruz|Santa Cruz de Tenerife
+Hellín|Albacete
+Almansa|Albacete
+Valdepeñas|Ciudad Real
+Tomelloso|Ciudad Real
+Sigüenza|Guadalajara
+Monforte de Lemos|Lugo
+Cangas de Onís|Asturias
+Laredo|Cantabria
+Castro Urdiales|Cantabria
+Estella|Navarra
+Haro|La Rioja
+Calahorra|La Rioja
+Sahagún|León
+Zafra|Badajoz
+Don Benito|Badajoz
+Almendralejo|Badajoz
+Lucena|Córdoba
+Montilla|Córdoba
+Sanlúcar de Barrameda|Cádiz
+Tarifa|Cádiz
+Nerja|Málaga
+Estepona|Málaga
+Roquetas de Mar|Almería
+Mojácar|Almería
+Moguer|Huelva
+Ayamonte|Huelva
+Palos de la Frontera|Huelva
+Andújar|Jaén
+Loja|Granada
+Águilas|Murcia
+Caravaca de la Cruz|Murcia
+Yecla|Murcia
+Eibar|Guipúzcoa
+Durango|Vizcaya
+Ribadeo|Lugo
+Sanxenxo|Pontevedra
+Llanes|Asturias
+Comillas|Cantabria
+Peñíscola|Castellón
+Xàtiva|Valencia
+Denia|Alicante
+Chinchón|Madrid
+Almagro|Ciudad Real
+Consuegra|Toledo`),k=>`¿En qué provincia está ${k}?`);
+const LANG=L(`
+Brasil|portugués
+Austria|alemán
+Egipto|árabe
+Argentina|español
+Japón|japonés
+Irán|persa
+Israel|hebreo
+Grecia|griego
+Países Bajos|neerlandés
+Angola|portugués
+Mozambique|portugués
+Cabo Verde|portugués
+Senegal|francés
+Costa de Marfil|francés
+Arabia Saudí|árabe
+Turquía|turco
+Bangladés|bengalí
+Tailandia|tailandés
+Vietnam|vietnamita
+Indonesia|indonesio
+Corea del Sur|coreano
+China|chino mandarín
+Rusia|ruso
+Polonia|polaco
+Hungría|húngaro
+Rumanía|rumano
+Suecia|sueco
+Noruega|noruego
+Dinamarca|danés
+Islandia|islandés
+Andorra|catalán
+Liechtenstein|alemán
+Mónaco|francés
+San Marino|italiano
+Cuba|español
+Ucrania|ucraniano
+Croacia|croata
+República Checa|checo
+Eslovaquia|eslovaco
+Eslovenia|esloveno
+Lituania|lituano
+Letonia|letón
+Estonia|estonio
+Bulgaria|búlgaro
+Serbia|serbio
+Albania|albanés
+Georgia|georgiano
+Armenia|armenio
+Mongolia|mongol
+Jamaica|inglés
+Surinam|neerlandés
+Belice|inglés
+Chile|español
+Uruguay|español`);
+add('Geografía',LANG,k=>`¿Cuál es el idioma oficial de ${k}?`);
+add('Geografía',L(`
+¿Qué idiomas son oficiales en Suiza?|Alemán, francés, italiano y romanche
+¿Qué idiomas son oficiales en Bélgica?|Neerlandés, francés y alemán
+¿Qué idiomas son oficiales en Canadá?|Inglés y francés
+¿Qué idiomas son oficiales en Paraguay?|Español y guaraní
+¿Qué idiomas son oficiales en Finlandia?|Finés y sueco
+¿Qué idiomas son oficiales en Irlanda?|Irlandés e inglés
+¿Qué idiomas son oficiales en Malta?|Maltés e inglés
+¿Qué idiomas son oficiales en Luxemburgo?|Luxemburgués, francés y alemán
+¿Qué idiomas son oficiales en Guinea Ecuatorial?|Español, francés y portugués
+¿Qué idiomas son oficiales en Kenia?|Suajili e inglés
+¿Qué idiomas son oficiales en Filipinas?|Filipino e inglés
+¿Qué idiomas son oficiales a nivel nacional en la India?|Hindi e inglés`));
+add('Geografía',L(`
+España|+34
+Francia|+33
+Portugal|+351
+Italia|+39
+Alemania|+49
+Reino Unido|+44
+Estados Unidos|+1
+México|+52
+Argentina|+54
+Brasil|+55
+Colombia|+57
+Chile|+56
+Perú|+51
+Venezuela|+58
+Japón|+81
+China|+86
+India|+91
+Rusia|+7
+Marruecos|+212
+Suiza|+41
+Países Bajos|+31
+Bélgica|+32
+Irlanda|+353
+Grecia|+30
+Suecia|+46
+Noruega|+47
+Dinamarca|+45
+Polonia|+48
+Australia|+61
+Ecuador|+593
+Uruguay|+598
+Cuba|+53
+Turquía|+90
+Austria|+43
+Andorra|+376
+Corea del Sur|+82
+Egipto|+20
+Sudáfrica|+27`),k=>`¿Cuál es el prefijo telefónico de ${k}?`);
+addR('Geografía',L(`
+España|.es
+Francia|.fr
+Alemania|.de
+Italia|.it
+Portugal|.pt
+Reino Unido|.uk
+Suiza|.ch
+Austria|.at
+Países Bajos|.nl
+Bélgica|.be
+Suecia|.se
+Noruega|.no
+Dinamarca|.dk
+Finlandia|.fi
+Polonia|.pl
+Grecia|.gr
+Irlanda|.ie
+Rusia|.ru
+China|.cn
+Japón|.jp
+Corea del Sur|.kr
+India|.in
+Brasil|.br
+Argentina|.ar
+México|.mx
+Chile|.cl
+Colombia|.co
+Perú|.pe
+Venezuela|.ve
+Canadá|.ca
+Australia|.au
+Nueva Zelanda|.nz
+Sudáfrica|.za
+Marruecos|.ma
+Egipto|.eg
+Turquía|.tr
+Tuvalu|.tv
+Andorra|.ad
+Mónaco|.mc
+Cuba|.cu
+Ecuador|.ec
+Uruguay|.uy
+Bolivia|.bo
+Paraguay|.py
+Costa Rica|.cr
+República Dominicana|.do
+Israel|.il
+Ucrania|.ua
+República Checa|.cz
+Hungría|.hu
+Rumanía|.ro
+Bulgaria|.bg
+Croacia|.hr
+Islandia|.is
+Luxemburgo|.lu
+Malta|.mt`),v=>`¿De qué país es el dominio de internet «${v}»?`);
+add('Geografía',L(`
+¿Cuántas comunidades autónomas tiene España?|17 (más las ciudades autónomas de Ceuta y Melilla)
+¿Cuál es la provincia más grande de España?|Badajoz
+¿Cuál es la provincia más pequeña de España?|Guipúzcoa
+¿Cuál es el río más largo que nace y muere en España?|El Ebro
+¿Cuál es la ciudad más poblada de España después de Madrid?|Barcelona
+¿Qué dos ciudades autónomas tiene España en el norte de África?|Ceuta y Melilla
+¿Cuántas islas principales forman las Canarias?|Ocho (con La Graciosa)
+¿Cuál es la isla más grande de Canarias?|Tenerife
+¿Cuál es la isla más pequeña de las Baleares principales?|Formentera
+¿Qué mar baña la costa de Almería?|El mar Mediterráneo
+¿Qué mar baña la costa de Cantabria?|El mar Cantábrico
+¿Cuál es el lago natural más grande de España?|El lago de Sanabria (Zamora)
+¿Dónde nace el río Tajo?|En la sierra de Albarracín (Teruel)
+¿En qué océano desemboca el Guadalquivir?|En el Atlántico
+¿Qué sierra separa Madrid de Segovia?|La sierra de Guadarrama
+¿Cuál es el pico más alto de la península ibérica?|El Mulhacén
+¿Cuál es el pico más alto de los Pirineos?|El Aneto
+¿Qué país tiene más habitantes del mundo?|La India
+¿Cuál es el continente más grande?|Asia
+¿Cuál es el continente con más países?|África
+¿Cuál es el país más grande de Sudamérica?|Brasil
+¿Cuál es el país más grande de África?|Argelia
+¿Qué país tiene forma alargada a lo largo de los Andes?|Chile
+¿Qué país está dentro de Roma?|La Ciudad del Vaticano
+¿Qué país rodea completamente a San Marino?|Italia
+¿Qué país rodea completamente a Lesoto?|Sudáfrica
+¿Qué dos mares une el canal de Suez?|El Mediterráneo y el mar Rojo
+¿Qué océano está entre América y Europa?|El océano Atlántico
+¿Cuál es el océano más pequeño?|El océano Ártico
+¿Cuál es el desierto más seco del mundo?|El desierto de Atacama
+¿En qué país está el desierto de Gobi?|Entre Mongolia y China
+¿Qué río pasa por Bagdad y Mosul?|El Tigris
+¿Qué río atraviesa la selva amazónica?|El Amazonas
+¿Cuál es el río más largo de Europa?|El Volga
+¿Qué ciudad está en dos continentes?|Estambul
+¿Cuál es la capital más alta del mundo?|La Paz (sede de gobierno de Bolivia)
+¿Cuál es la capital más al norte del mundo?|Reikiavik
+¿Qué línea imaginaria divide la Tierra en dos hemisferios norte y sur?|El ecuador
+¿Qué meridiano marca la hora 0?|El meridiano de Greenwich
+¿Cuántos husos horarios tiene la España peninsular?|Uno (Canarias tiene una hora menos)
+¿Qué país tiene más islas del mundo?|Suecia
+¿Cuál es el país más poblado de África?|Nigeria
+¿Cuál es el país más poblado de Sudamérica?|Brasil
+¿Qué estrecho separa Asia de América?|El estrecho de Bering
+¿Qué estrecho separa Europa de Asia en Estambul?|El Bósforo
+¿Qué cordillera separa Europa de Asia?|Los montes Urales
+¿Cuál es la montaña más alta de África?|El Kilimanjaro
+¿Cuál es la montaña más alta de América?|El Aconcagua
+¿Cuál es la montaña más alta de Europa occidental?|El Mont Blanc
+¿En qué cordillera está el Everest?|En el Himalaya
+¿Cuál es el país más pequeño de América del Sur?|Surinam
+¿Qué país tiene la mayor costa del mundo?|Canadá
+¿Qué país sudamericano no tiene costa y es más grande?|Bolivia
+¿Cuántos países hay en la Unión Europea?|27`));
+
+/* ---------- Ciencia ---------- */
+add('Ciencia',L(`
+hidrógeno|1
+helio|2
+litio|3
+berilio|4
+boro|5
+carbono|6
+nitrógeno|7
+oxígeno|8
+flúor|9
+neón|10
+sodio|11
+magnesio|12
+aluminio|13
+silicio|14
+fósforo|15
+azufre|16
+cloro|17
+argón|18
+potasio|19
+calcio|20
+titanio|22
+cromo|24
+hierro|26
+cobalto|27
+níquel|28
+cobre|29
+zinc|30
+plata|47
+estaño|50
+yodo|53
+xenón|54
+platino|78
+oro|79
+mercurio|80
+plomo|82
+radón|86
+radio|88
+uranio|92`),k=>`¿Cuál es el número atómico del ${k}?`);
+add('Ciencia',L(`
+los fósiles|Paleontología
+los insectos|Entomología
+las aves|Ornitología
+los volcanes|Vulcanología
+los terremotos|Sismología
+los hongos y setas|Micología
+los peces|Ictiología
+las células|Citología
+los tejidos del cuerpo|Histología
+el comportamiento de los animales|Etología
+el clima|Climatología
+el universo en su conjunto|Cosmología
+los reptiles y anfibios|Herpetología
+las plantas|Botánica
+los animales|Zoología
+las cuevas|Espeleología
+los árboles genealógicos y linajes|Genealogía
+los mapas|Cartografía
+los vinos|Enología
+el sonido|Acústica
+los mares y océanos|Oceanografía
+los seres vivos en su medio|Ecología
+los dientes|Odontología
+el corazón|Cardiología
+la piel|Dermatología
+los ojos|Oftalmología
+los huesos|Osteología
+la sangre|Hematología
+los riñones|Nefrología
+el sistema nervioso|Neurología
+`),k=>`¿Qué ciencia o especialidad estudia ${k}?`);
+add('Ciencia',L(`
+las arañas|Aracnofobia
+las alturas|Acrofobia
+los espacios abiertos o multitudes en lugares públicos|Agorafobia
+la oscuridad|Nictofobia
+hablar en público|Glosofobia
+volar en avión|Aerofobia
+los perros|Cinofobia
+los gatos|Ailurofobia
+las serpientes|Ofidiofobia
+la sangre|Hemofobia
+las agujas e inyecciones|Tripanofobia
+los payasos|Coulrofobia
+los insectos|Entomofobia
+quedarse sin móvil|Nomofobia
+vomitar|Emetofobia
+los truenos y relámpagos|Astrafobia
+los pájaros|Ornitofobia
+los peces|Ictiofobia
+el dentista|Odontofobia
+el número 13|Triscaidecafobia
+los números|Aritmofobia
+el agua|Hidrofobia
+enamorarse|Filofobia
+el matrimonio|Gamofobia
+la muerte|Tanatofobia
+`),k=>`¿Cómo se llama el miedo a ${k}?`.replace(' a el ',' al '));
+add('Ciencia',L(`
+¿Qué órgano filtra la sangre y produce la orina?|Los riñones
+¿Cómo se llama el proceso por el que las plantas fabrican su alimento con la luz?|Fotosíntesis
+¿Qué pigmento da el color verde a las plantas?|La clorofila
+¿Qué gas expulsamos al respirar?|Dióxido de carbono
+¿Qué partícula del átomo tiene carga negativa?|El electrón
+¿Qué partícula del átomo tiene carga positiva?|El protón
+¿Qué partícula del átomo no tiene carga?|El neutrón
+¿Quién formuló las tres leyes del movimiento?|Isaac Newton
+¿Cuál es la ecuación más famosa de Einstein?|E = mc²
+¿A qué temperatura se congela el agua en grados Celsius?|0 °C
+¿Cuál es la temperatura normal del cuerpo humano?|Unos 36,5–37 °C
+¿Cuántos litros de sangre tiene un adulto, aproximadamente?|Unos 5 litros
+¿Cómo se llama el satélite más grande de Júpiter?|Ganímedes
+¿Qué planeta gira «tumbado», casi de lado?|Urano
+¿Qué astrónomo da nombre al telescopio espacial lanzado en 1990?|Edwin Hubble
+¿Qué telescopio espacial se lanzó en diciembre de 2021?|El James Webb
+¿Qué viaja más rápido, la luz o el sonido?|La luz
+¿A qué velocidad viaja el sonido en el aire, aproximadamente?|Unos 343 metros por segundo
+¿Cuál es el elemento más abundante del universo?|El hidrógeno
+¿Cuál es el único mamífero capaz de volar?|El murciélago
+¿Qué animal tiene la gestación más larga?|El elefante (unos 22 meses)
+¿De qué color es la sangre del pulpo?|Azul
+¿Qué ave que no vuela es símbolo de Nueva Zelanda?|El kiwi
+¿Cuál es el pez más grande del mundo?|El tiburón ballena
+¿Qué hueso protege el cerebro?|El cráneo
+¿Cuál es el órgano interno más grande del cuerpo?|El hígado
+¿Qué órgano produce la bilis?|El hígado
+¿Cuántas vértebras tiene la columna humana?|33 (algunas se fusionan en el adulto)
+¿Qué parte del ojo le da su color?|El iris
+¿Qué científico propuso la teoría de la deriva continental?|Alfred Wegener
+¿Cómo se llamaba el supercontinente que reunía todas las tierras?|Pangea
+¿Cuál es la capa más externa de la Tierra?|La corteza
+¿Cómo se llama la parte central de la Tierra?|El núcleo
+¿Qué gas forma la capa que nos protege de los rayos ultravioleta?|El ozono
+¿Cómo se llama el paso directo de sólido a gas?|Sublimación
+¿Cómo se llama el paso de gas a líquido?|Condensación
+¿Cómo se llama el paso de líquido a sólido?|Solidificación
+¿Qué escala mide la dureza de los minerales?|La escala de Mohs
+¿Cuál es el mineral más duro de la escala de Mohs?|El diamante
+¿Cómo se llama la estrella que vemos de día?|El Sol
+¿Cuánto tarda la Tierra en dar una vuelta alrededor del Sol?|Unos 365 días (un año)
+¿Cuánto tarda la Tierra en girar sobre sí misma?|Unas 24 horas (un día)
+¿Cuánto tarda la Luna en dar una vuelta a la Tierra?|Unos 27 días (el ciclo de fases dura unos 29,5)
+¿Cómo se llama la fase en la que no vemos la Luna?|Luna nueva
+¿Qué planeta tiene la Gran Mancha Roja?|Júpiter
+¿Cómo se llama el robot de la NASA que llegó a Marte en 2021?|Perseverance
+¿Quién fue el primer español en viajar al espacio?|Pedro Duque
+¿Qué perra fue el primer animal en orbitar la Tierra?|Laika
+¿Cómo se llama la explosión que, según la teoría, originó el universo?|Big Bang
+¿Qué molécula contiene la información genética?|El ADN
+¿Quiénes describieron la estructura de doble hélice del ADN en 1953?|James Watson y Francis Crick
+¿Cuántos pares de cromosomas tiene el ser humano?|23
+¿Qué tipo de sangre tienen los receptores universales?|AB positivo
+¿Qué órgano controla el equilibrio, además de la audición?|El oído interno
+¿Cuál es el hueso más largo del brazo?|El húmero
+¿Cuántos músculos tiene aproximadamente el cuerpo humano?|Más de 600
+¿Cuál es la glándula más grande del cuerpo?|El hígado
+¿Qué animal es el más rápido en picado?|El halcón peregrino
+¿Qué animal tiene la lengua más larga en proporción a su cuerpo?|El camaleón
+¿Cuántas patas tiene un insecto?|6
+¿Cuántos brazos tiene un pulpo?|8
+¿Cuántos brazos tiene un calamar, contando los dos tentáculos?|10
+¿Cuántas patas tiene un cangrejo, contando las pinzas?|10
+¿Qué mamífero pone huevos y tiene pico de pato?|El ornitorrinco
+¿Qué animal cambia de color para camuflarse en tierra?|El camaleón
+¿Qué animal marino tiene tres corazones?|El pulpo
+¿Cuántos estómagos tiene una vaca?|Uno con cuatro compartimentos
+¿Qué animal es conocido como «el rey de la selva»?|El león
+¿Cuál es el felino más grande del mundo?|El tigre
+¿Qué ave es símbolo de la paz?|La paloma
+¿Cuál es el animal nacional de Australia?|El canguro
+¿Qué animal es el símbolo de WWF?|El oso panda
+¿Qué gas usan los globos para flotar?|Helio
+¿A qué temperatura hierve el agua en grados Fahrenheit?|212 °F
+¿Cuál es el cero absoluto en grados Celsius?|−273,15 °C
+¿Qué científico italiano mejoró el telescopio y observó las lunas de Júpiter?|Galileo Galilei
+¿Qué científica británica fue clave en la foto del ADN (foto 51)?|Rosalind Franklin
+¿Quién es considerada la primera programadora de la historia?|Ada Lovelace
+¿Quién propuso la teoría de la relatividad general?|Albert Einstein
+¿Qué inventor serbio trabajó con la corriente alterna?|Nikola Tesla`));
+
+/* ---------- Mitología ---------- */
+const GODS=L(`
+Zeus|Júpiter
+Hera|Juno
+Poseidón|Neptuno
+Ares|Marte
+Afrodita|Venus
+Hermes|Mercurio
+Atenea|Minerva
+Artemisa|Diana
+Hefesto|Vulcano
+Hades|Plutón
+Dioniso|Baco
+Deméter|Ceres
+Eros|Cupido
+Cronos|Saturno
+Hestia|Vesta`);
+add('Historia',GODS,k=>`¿Cuál es el nombre romano del dios griego ${k}?`);
+addR('Historia',GODS,v=>`¿Cuál es el nombre griego del dios romano ${v}?`);
+add('Historia',L(`
+Zeus|Del cielo y el rayo (rey de los dioses)
+Poseidón|Del mar
+Ares|De la guerra
+Afrodita|Del amor y la belleza
+Hermes|Mensajero de los dioses (y del comercio)
+Atenea|De la sabiduría (y la estrategia)
+Artemisa|De la caza
+Hefesto|Del fuego y la forja
+Hades|Del inframundo
+Dioniso|Del vino y la fiesta
+Deméter|De la agricultura
+Apolo|De la luz, la música y las artes
+Hestia|Del hogar
+Nike|De la victoria
+Eolo|De los vientos
+Hipnos|Del sueño
+Thor (mitología nórdica)|Del trueno
+Odín (mitología nórdica)|Padre de los dioses nórdicos, de la sabiduría
+Ra (mitología egipcia)|Del sol
+Anubis (mitología egipcia)|De los muertos y el embalsamamiento`),k=>`¿De qué es dios o diosa ${k}?`);
+
+/* ---------- Historia ---------- */
+add('Historia',L(`
+¿Quién fue el primer presidente del Gobierno de la democracia tras Franco?|Adolfo Suárez
+¿Quién fue proclamado rey de España en noviembre de 1975?|Juan Carlos I
+¿Quién fue el primer presidente de la Segunda República?|Niceto Alcalá-Zamora
+¿Qué rey de España abdicó en 2014?|Juan Carlos I
+¿Qué faraón tiene la tumba famosa descubierta casi intacta en 1922?|Tutankamón
+¿Quién descubrió la tumba de Tutankamón?|Howard Carter
+¿Cómo se llamaban las tres naves del primer viaje de Colón?|La Niña, la Pinta y la Santa María
+¿De qué puerto salió Colón en 1492?|Palos de la Frontera
+¿Cómo llamaban los nativos a la primera isla que pisó Colón?|Guanahani (Colón la llamó San Salvador)
+¿Quién fue el último rey nazarí de Granada?|Boabdil
+¿Qué rey cristiano conquistó Sevilla en 1248?|Fernando III el Santo
+¿Cuál era el nombre real del Cid?|Rodrigo Díaz de Vivar
+¿Cómo se llamaba el caballo del Cid?|Babieca
+¿Cómo se llamaban las espadas del Cid?|Tizona y Colada
+¿Quién dijo «Vine, vi, vencí»?|Julio César
+¿Quién cruzó los Alpes con elefantes para atacar Roma?|Aníbal
+¿Quién fue el maestro de Alejandro Magno?|Aristóteles
+¿Quién fue el maestro de Platón?|Sócrates
+¿Qué reina de Egipto se relacionó con Julio César y Marco Antonio?|Cleopatra
+¿En qué isla nació Napoleón?|Córcega
+¿En qué isla murió Napoleón desterrado?|Santa Elena
+¿Quién fue el primer presidente afroamericano de Estados Unidos?|Barack Obama
+¿Qué presidente de Estados Unidos abolió la esclavitud?|Abraham Lincoln
+¿Quién pronunció el discurso «I have a dream»?|Martin Luther King
+¿Quién fue la primera mujer en ganar un Premio Nobel?|Marie Curie
+¿Quién fue la primera mujer en presidir el Gobierno del Reino Unido?|Margaret Thatcher
+¿Quién dirigía la Unión Soviética durante la Segunda Guerra Mundial?|Stalin
+¿Quién fue primer ministro británico durante casi toda la Segunda Guerra Mundial?|Winston Churchill
+¿Qué día fue el desembarco de Normandía?|El 6 de junio de 1944
+¿Qué nombre en clave tuvo la invasión aliada de Normandía?|Operación Overlord
+¿En qué barco llegaron los peregrinos a Norteamérica en 1620?|El Mayflower
+¿Qué civilización inventó la escritura cuneiforme?|Los sumerios (Mesopotamia)
+¿Qué civilización construyó Chichén Itzá?|La maya
+¿Cuál era la capital del Imperio azteca?|Tenochtitlan
+¿Cuál era la capital del Imperio inca?|Cuzco
+¿Quién era el emperador azteca cuando llegó Hernán Cortés?|Moctezuma II
+¿Qué emperador inca capturó Pizarro?|Atahualpa
+¿Qué libertador da nombre a Bolivia?|Simón Bolívar
+¿Quién lideró la independencia de Argentina, Chile y Perú?|José de San Martín
+¿Cómo se llamaba el último zar de Rusia?|Nicolás II
+¿Quién lideró la Revolución de Octubre en Rusia?|Lenin
+¿Cuántos años estuvo Nelson Mandela en prisión?|27 años
+¿Qué muro construyeron los romanos en el norte de Britania?|El Muro de Adriano
+¿Qué hermanos fundaron Roma según la leyenda?|Rómulo y Remo
+¿Qué animal amamantó a Rómulo y Remo según la leyenda?|Una loba
+¿Qué guerra enfrentó a Atenas y Esparta en el siglo V a. C.?|La guerra del Peloponeso
+¿Cuántos espartanos lucharon junto a Leónidas en las Termópilas según la tradición?|300
+¿Qué ciudad cayó por el engaño del caballo de madera?|Troya
+¿Quién escribió el Manifiesto comunista junto a Karl Marx?|Friedrich Engels
+¿Cuánto duró en realidad la guerra de los Cien Años?|116 años
+¿Qué dinastía reinó en España antes de los Borbones?|Los Austrias (Habsburgo)
+¿Quién fue el último rey de la Casa de Austria en España?|Carlos II «el Hechizado»
+¿Qué rey de España era apodado «el Deseado»?|Fernando VII
+¿Qué reina subió al trono de España con 3 años en 1833?|Isabel II
+¿Qué rey de origen italiano reinó en España entre 1871 y 1873?|Amadeo I de Saboya
+¿Quién fue el primer presidente de la Primera República española?|Estanislao Figueras
+¿En qué año se aprobó el sufragio femenino en España?|1931
+¿Qué diputada defendió el voto femenino en las Cortes de 1931?|Clara Campoamor
+¿Qué imperio tenía su capital en Constantinopla?|El Imperio bizantino
+¿Cómo se llama hoy Constantinopla?|Estambul
+¿Quién fundó la ciudad de Lima?|Francisco Pizarro
+¿Qué explorador español fue el primer europeo en ver el océano Pacífico desde América?|Vasco Núñez de Balboa
+¿Qué navegante portugués llegó a la India por mar en 1498?|Vasco da Gama
+¿Quién dio nombre al continente americano?|Américo Vespucio
+¿Qué tratado de 1992 creó la Unión Europea?|El Tratado de Maastricht
+¿Qué se proclamó el 14 de abril de 1931 en España?|La Segunda República
+¿Qué presidente de EE. UU. fue asesinado en Dallas en 1963?|John F. Kennedy
+¿Qué presidente de EE. UU. dimitió por el escándalo Watergate?|Richard Nixon
+¿Quién fue el primer emperador de China unificada?|Qin Shi Huang
+¿Qué ejército de figuras de barro se descubrió en Xi'an?|Los guerreros de terracota
+¿Qué reina inglesa del siglo XVI derrotó a la Armada Invencible?|Isabel I de Inglaterra
+¿Qué rey inglés tuvo seis esposas?|Enrique VIII
+¿Qué reina francesa fue guillotinada en 1793?|María Antonieta
+¿Qué rey francés era conocido como «el Rey Sol»?|Luis XIV
+¿En qué ciudad se firmó la paz que terminó la Primera Guerra Mundial con Alemania?|Versalles
+¿Qué general cartaginés fue el gran enemigo de Roma?|Aníbal
+¿Quién era la reina de Castilla que apoyó a Colón?|Isabel la Católica
+¿Qué rey de Aragón se casó con Isabel de Castilla?|Fernando el Católico
+¿Qué emperador fue a la vez Carlos I de España?|Carlos V del Sacro Imperio
+¿En qué monasterio se retiró Carlos V al final de su vida?|El monasterio de Yuste (Cáceres)
+¿Qué pintor fue pintor de cámara de Felipe IV?|Diego Velázquez
+¿Qué pintor retrató a la familia de Carlos IV?|Francisco de Goya
+¿Quién fue el primer hombre en llegar al Polo Sur?|Roald Amundsen
+¿Qué nombre tenía el avión que lanzó la bomba sobre Hiroshima?|Enola Gay
+¿Qué ciudad sufrió la segunda bomba atómica?|Nagasaki
+¿Qué símbolo se pintó en el escudo de la URSS junto al martillo?|La hoz
+¿Quién fue el primer astronauta estadounidense en orbitar la Tierra?|John Glenn
+¿Qué misión llevó al hombre a la Luna por primera vez?|Apolo 11
+¿Quién fue el segundo hombre en pisar la Luna?|Buzz Aldrin`));
+add('Historia',L(`
+Berlín|1936
+Helsinki|1952
+Melbourne|1956
+Roma|1960
+Ciudad de México|1968
+Múnich|1972
+Montreal|1976
+Moscú|1980
+Seúl|1988
+Barcelona|1992
+Atlanta|1996
+Sídney|2000
+Pekín|2008
+Río de Janeiro|2016`),k=>`¿En qué año se celebraron los Juegos Olímpicos de verano de ${k}?`);
+
+/* ---------- Arte y cultura ---------- */
+add('Arte y cultura',L(`
+Miguel de Cervantes|Española
+Federico García Lorca|Española
+Antonio Machado|Española
+Benito Pérez Galdós|Española
+Camilo José Cela|Española
+Carmen Laforet|Española
+Miguel de Unamuno|Española
+Juan Ramón Jiménez|Española
+Gustavo Adolfo Bécquer|Española
+Arturo Pérez-Reverte|Española
+Carlos Ruiz Zafón|Española
+Gabriel García Márquez|Colombiana
+Mario Vargas Llosa|Peruana (y también española)
+Julio Cortázar|Argentina
+Jorge Luis Borges|Argentina
+Isabel Allende|Chilena
+Pablo Neruda|Chilena
+Gabriela Mistral|Chilena
+Juan Rulfo|Mexicana
+Octavio Paz|Mexicana
+Laura Esquivel|Mexicana
+Rubén Darío|Nicaragüense
+William Shakespeare|Inglesa
+Jane Austen|Inglesa
+Charles Dickens|Inglesa
+Agatha Christie|Inglesa
+J. K. Rowling|Británica
+George Orwell|Británica
+J. R. R. Tolkien|Británica
+Arthur Conan Doyle|Escocesa
+Robert Louis Stevenson|Escocesa
+Oscar Wilde|Irlandesa
+James Joyce|Irlandesa
+Bram Stoker|Irlandesa
+Victor Hugo|Francesa
+Julio Verne|Francesa
+Alexandre Dumas|Francesa
+Gustave Flaubert|Francesa
+Albert Camus|Francesa
+Antoine de Saint-Exupéry|Francesa
+Marcel Proust|Francesa
+León Tolstói|Rusa
+Fiódor Dostoievski|Rusa
+Franz Kafka|Checa (de Praga, escribía en alemán)
+Johann Wolfgang von Goethe|Alemana
+Patrick Süskind|Alemana
+Michael Ende|Alemana
+Umberto Eco|Italiana
+Dante Alighieri|Italiana
+Ernest Hemingway|Estadounidense
+Mark Twain|Estadounidense
+Stephen King|Estadounidense
+Edgar Allan Poe|Estadounidense
+Paulo Coelho|Brasileña
+José Saramago|Portuguesa
+Fernando Pessoa|Portuguesa
+Stieg Larsson|Sueca
+Astrid Lindgren|Sueca
+Hans Christian Andersen|Danesa
+Haruki Murakami|Japonesa
+Pablo Picasso|Española
+Salvador Dalí|Española
+Joan Miró|Española
+Diego Velázquez|Española
+Francisco de Goya|Española
+El Greco|Griega (nació en Creta)
+Joaquín Sorolla|Española
+Bartolomé Esteban Murillo|Española
+Leonardo da Vinci|Italiana
+Miguel Ángel|Italiana
+Rafael Sanzio|Italiana
+Sandro Botticelli|Italiana
+Caravaggio|Italiana
+Vincent van Gogh|Neerlandesa
+Rembrandt|Neerlandesa
+Johannes Vermeer|Neerlandesa
+Claude Monet|Francesa
+Pierre-Auguste Renoir|Francesa
+Paul Cézanne|Francesa
+Edvard Munch|Noruega
+Gustav Klimt|Austriaca
+Frida Kahlo|Mexicana
+Diego Rivera|Mexicana
+Andy Warhol|Estadounidense
+René Magritte|Belga
+Fernando Botero|Colombiana
+Hokusai|Japonesa
+Antoni Gaudí|Española
+Santiago Calatrava|Española
+Wolfgang Amadeus Mozart|Austriaca
+Ludwig van Beethoven|Alemana
+Johann Sebastian Bach|Alemana
+Antonio Vivaldi|Italiana
+Giuseppe Verdi|Italiana
+Frédéric Chopin|Polaca
+Piotr Ilich Chaikovski|Rusa
+Manuel de Falla|Española
+Isaac Albéniz|Española
+Joaquín Rodrigo|Española
+Pedro Almodóvar|Española
+Alejandro Amenábar|Española (nacido en Chile)
+Luis Buñuel|Española
+Steven Spielberg|Estadounidense
+Alfred Hitchcock|Británica
+Guillermo del Toro|Mexicana
+Alfonso Cuarón|Mexicana
+Alejandro González Iñárritu|Mexicana
+Hayao Miyazaki|Japonesa
+Bong Joon-ho|Surcoreana
+Federico Fellini|Italiana
+Roberto Benigni|Italiana
+Christopher Nolan|Británica
+Shakira|Colombiana
+Rosalía|Española
+Bad Bunny|Puertorriqueña
+Karol G|Colombiana
+Luis Fonsi|Puertorriqueña
+Marc Anthony|Estadounidense
+Juanes|Colombiana
+Carlos Vives|Colombiana
+Daddy Yankee|Puertorriqueña
+Ricky Martin|Puertorriqueña
+Gloria Estefan|Cubana (y estadounidense)
+Celia Cruz|Cubana
+Jorge Drexler|Uruguaya
+Gustavo Cerati|Argentina
+Mercedes Sosa|Argentina
+Bob Marley|Jamaicana
+ABBA|Sueca
+Queen|Británica
+The Beatles|Británica
+U2|Irlandesa
+AC/DC|Australiana
+Rammstein|Alemana
+Måneskin|Italiana
+Laura Pausini|Italiana
+Eros Ramazzotti|Italiana
+Édith Piaf|Francesa
+Stromae|Belga
+Céline Dion|Canadiense
+Justin Bieber|Canadiense
+Drake|Canadiense
+Adele|Británica
+Ed Sheeran|Británica
+Dua Lipa|Británica
+Taylor Swift|Estadounidense
+Beyoncé|Estadounidense
+Rihanna|Barbadense
+Bob Dylan|Estadounidense
+Elvis Presley|Estadounidense
+Madonna|Estadounidense
+Frank Sinatra|Estadounidense`),k=>`¿Cuál es la nacionalidad de ${k}?`);
+add('Arte y cultura',L(`
+Sherlock Holmes|Arthur Conan Doyle
+Hércules Poirot|Agatha Christie
+Miss Marple|Agatha Christie
+Don Quijote|Miguel de Cervantes
+Mortadelo y Filemón|Francisco Ibáñez
+Astérix y Obélix|René Goscinny y Albert Uderzo
+Tintín|Hergé
+Mafalda|Quino
+Snoopy y Charlie Brown|Charles M. Schulz
+Garfield|Jim Davis
+Mickey Mouse|Walt Disney (y Ub Iwerks)
+Peter Pan|J. M. Barrie
+Pinocho|Carlo Collodi
+Manolito Gafotas|Elvira Lindo
+Pepe Carvalho|Manuel Vázquez Montalbán
+Gregor Samsa|Franz Kafka
+Jean Valjean|Victor Hugo
+Edmond Dantès|Alexandre Dumas
+Phileas Fogg|Julio Verne
+el capitán Nemo|Julio Verne
+Ebenezer Scrooge|Charles Dickens
+Elizabeth Bennet|Jane Austen
+Jay Gatsby|F. Scott Fitzgerald
+Holden Caulfield|J. D. Salinger
+Aureliano Buendía|Gabriel García Márquez
+Bilbo Bolsón|J. R. R. Tolkien
+Harry Potter|J. K. Rowling
+Frankenstein (el doctor y su criatura)|Mary Shelley
+el conde Drácula|Bram Stoker
+Pippi Calzaslargas|Astrid Lindgren
+Willy Wonka|Roald Dahl
+Matilda|Roald Dahl
+el Principito|Antoine de Saint-Exupéry
+Robinson Crusoe|Daniel Defoe
+Gulliver|Jonathan Swift
+Tom Sawyer|Mark Twain
+el capitán Ahab|Herman Melville
+Lisbeth Salander|Stieg Larsson
+Bastian y Atreyu|Michael Ende
+el doctor Jekyll y mister Hyde|Robert Louis Stevenson
+James Bond|Ian Fleming
+Tarzán|Edgar Rice Burroughs
+el Zorro|Johnston McCulley
+Superlópez|Jan (Juan López Fernández)
+Spider-Man|Stan Lee y Steve Ditko`),k=>`¿Quién creó a ${k}?`.replace(' a el ',' al '));
+add('Arte y cultura',L(`
+Darth Vader|Star Wars (La guerra de las galaxias)
+Gandalf|El Señor de los Anillos (y El hobbit)
+Hermione Granger|Harry Potter
+Simba|El Rey León
+Woody y Buzz Lightyear|Toy Story
+Rayo McQueen|Cars
+Sulley y Mike Wazowski|Monstruos, S. A.
+Olaf|Frozen
+Gru|Gru, mi villano favorito
+Hannibal Lecter|El silencio de los corderos
+Vito Corleone|El Padrino
+Tony Montana|El precio del poder (Scarface)
+Marty McFly|Regreso al futuro
+Neo y Morfeo|Matrix
+Ellen Ripley|Alien
+Rick Blaine|Casablanca
+Holly Golightly|Desayuno con diamantes
+Jack Dawson y Rose|Titanic
+Walter White|Breaking Bad
+Tyrion Lannister|Juego de tronos
+Daenerys Targaryen|Juego de tronos
+Eleven (Once)|Stranger Things
+el Profesor y Tokio|La casa de papel
+Sheldon Cooper|The Big Bang Theory
+Chandler Bing y Rachel Green|Friends
+Michael Scott|The Office
+Tony Soprano|Los Soprano
+Gregory House|House
+Meredith Grey|Anatomía de Grey
+Juan Cuesta|Aquí no hay quien viva
+Antonio Recio|La que se avecina
+Paquita Salas|Paquita Salas
+Anton Chigurh|No es país para viejos
+Jack Torrance|El resplandor
+Forrest Gump|Forrest Gump
+Ofelia y el Fauno|El laberinto del fauno
+Miguel Rivera y Héctor|Coco
+Carl Fredricksen|Up
+Remy|Ratatouille
+Po|Kung Fu Panda
+Dory|Buscando a Nemo
+Shrek y Asno|Shrek
+Jack Skellington|Pesadilla antes de Navidad
+el Joker y Batman|Batman
+Thanos|Vengadores (Marvel)
+Katniss Everdeen|Los juegos del hambre
+Indiana Jones|En busca del arca perdida (saga Indiana Jones)
+Maximus Decimus Meridius|Gladiator
+William Wallace|Braveheart
+Jason Bourne|El caso Bourne
+Ethan Hunt|Misión imposible
+John McClane|La jungla de cristal
+Beatrix Kiddo|Kill Bill
+Amélie Poulain|Amélie
+Pepa Marcos|Mujeres al borde de un ataque de nervios`),k=>`¿En qué película o serie aparece ${k}?`);
+add('Arte y cultura',L(`
+¿Cómo se llama el caballo de Don Quijote?|Rocinante
+¿Cómo se llama el asno de Sancho Panza?|Rucio
+¿Cómo se llama la amada de Don Quijote?|Dulcinea del Toboso
+¿Contra qué luchó Don Quijote creyendo que eran gigantes?|Contra molinos de viento
+¿Cuántos versos tiene un soneto?|14
+¿Cuántas sílabas tiene un haiku tradicional?|17 (5, 7 y 5)
+¿Cómo se llama una palabra que se lee igual al derecho y al revés?|Palíndromo
+¿Cómo se llama una palabra formada con las letras de otra?|Anagrama
+¿Cómo se llama la figura que exagera algo?|Hipérbole
+¿Qué premio literario más importante en español se entrega en Alcalá de Henares?|El Premio Cervantes
+¿En qué museo de Madrid está la colección Thyssen?|En el Museo Nacional Thyssen-Bornemisza
+¿Qué instrumento tocaba Jimi Hendrix?|La guitarra eléctrica
+¿Qué compositor quedó sordo y siguió componiendo?|Ludwig van Beethoven
+¿Qué compositor escribió el Bolero?|Maurice Ravel
+¿Quién compuso el Concierto de Aranjuez?|Joaquín Rodrigo
+¿Qué ópera de Bizet transcurre en Sevilla?|Carmen
+¿Quién compuso «El lago de los cisnes»?|Chaikovski
+¿Cuántas cuerdas tiene un contrabajo?|4 (a veces 5)
+¿Qué instrumento tiene teclas blancas y negras y pedales?|El piano
+¿Cómo se llama el conjunto de cuatro músicos?|Cuarteto
+¿Qué festival de cine se celebra en San Sebastián cada septiembre?|El Festival Internacional de Cine de San Sebastián
+¿Cómo se llaman los premios del cine español?|Los Goya
+¿Qué película española ganó el Óscar a mejor película extranjera en 1983?|Volver a empezar (José Luis Garci)
+¿Qué actor español ganó el Óscar por No es país para viejos?|Javier Bardem
+¿Qué actriz española ganó el Óscar por Vicky Cristina Barcelona?|Penélope Cruz
+¿En qué país se celebró el primer Festival de Eurovisión, en 1956?|Suiza (Lugano)
+¿Qué cantante ganó Eurovisión para España en 1968?|Massiel
+¿Con qué canción ganó Massiel Eurovisión?|La, la, la
+¿Qué cantante ganó Eurovisión para España en 1969 (empatada)?|Salomé
+¿Cuál es el museo más visitado del mundo?|El Louvre
+¿Qué pintor se representó a sí mismo dentro de Las Meninas?|Diego Velázquez
+¿Qué escultor hizo El David de Florencia?|Miguel Ángel
+¿Qué arquitecto diseñó el Museo Guggenheim de Bilbao?|Frank Gehry
+¿Qué arquitecto diseñó la pirámide de cristal del Louvre?|I. M. Pei
+¿Cómo se llama el estilo artístico de Picasso y Braque basado en formas geométricas?|Cubismo
+¿A qué movimiento pertenece Salvador Dalí?|Surrealismo
+¿A qué movimiento pertenece Claude Monet?|Impresionismo
+¿Qué estilo arquitectónico tiene arcos apuntados y vidrieras?|Gótico
+¿Qué estilo arquitectónico tiene arcos de medio punto y muros gruesos?|Románico`));
+
+/* ---------- Comida ---------- */
+add('Comida',L(`
+la fabada|Asturias
+el pulpo a la gallega|Galicia
+la paella|Valencia
+el gazpacho|Andalucía
+el salmorejo|Córdoba
+el cocido madrileño|Madrid
+el cocido maragato|León (Astorga)
+la sobrasada|Mallorca
+la ensaimada|Mallorca
+las papas arrugadas|Canarias
+el mojo picón|Canarias
+el pa amb tomàquet|Cataluña
+la crema catalana|Cataluña
+los calçots|Cataluña (Valls)
+los pimientos de Padrón|Galicia
+la tarta de Santiago|Galicia
+el queso de tetilla|Galicia
+el queso de Cabrales|Asturias
+la sidra natural|Asturias
+el marmitako|País Vasco
+el bacalao al pil-pil|País Vasco
+el txakoli|País Vasco
+el pisto manchego|Castilla-La Mancha
+el queso manchego|Castilla-La Mancha
+el cochinillo asado|Segovia
+la morcilla de Burgos|Burgos
+el botillo|El Bierzo (León)
+el jamón de Jabugo|Huelva
+los espetos de sardinas|Málaga
+el flamenquín|Córdoba
+el ajoblanco|Andalucía (Málaga)
+la torta del Casar|Cáceres
+el pimentón de la Vera|Cáceres
+el zarangollo|Murcia
+los paparajotes|Murcia
+la horchata|Valencia
+el turrón de Jijona|Alicante
+el all i pebre|Valencia
+los fartons|Alboraya (Valencia)
+las migas de pastor|Castilla-La Mancha, Extremadura y Aragón
+el ternasco|Aragón
+la cecina|León
+las rosquillas de Alcalá|Alcalá de Henares
+el sushi|Japón
+el ramen|Japón
+los tacos al pastor|México
+el guacamole|México
+el ceviche|Perú
+el asado argentino|Argentina
+la feijoada|Brasil
+el croissant|Francia
+la ratatouille|Francia
+las crêpes|Francia
+la raclette|Suiza
+la fondue|Suiza
+el goulash|Hungría
+la musaca|Grecia
+el tzatziki|Grecia
+el kebab|Turquía
+el baklava|Turquía
+los pierogi|Polonia
+el kimchi|Corea
+el pho|Vietnam
+el pad thai|Tailandia
+la poutine|Canadá (Quebec)
+el fish and chips|Reino Unido
+el haggis|Escocia
+la bratwurst|Alemania
+el strudel de manzana|Austria
+el tiramisú|Italia
+el risotto|Italia
+el pesto|Génova (Italia)
+la pizza margarita|Nápoles (Italia)
+la carbonara|Roma (Italia)
+el chucrut|Alemania (y Alsacia)
+las arepas|Venezuela y Colombia
+el dulce de leche|Argentina y Uruguay
+los nachos|México (popularizados en EE. UU.)
+el cuscús|El Magreb (norte de África)
+el falafel|Oriente Medio
+el borsch|Ucrania
+la caipiriña|Brasil
+el mojito|Cuba
+el pisco sour|Perú y Chile
+el tequila|México
+el whisky escocés|Escocia
+el champán|Francia (Champaña)
+el oporto|Portugal
+el jerez|Cádiz (Jerez de la Frontera)`),k=>`¿De dónde es típic${/^las /.test(k)?'as':/^los /.test(k)?'os':/^la /.test(k)?'a':'o'} ${k}?`);
+add('Comida',L(`
+¿Cuál es el ingrediente principal del gazpacho?|El tomate
+¿Con qué se hace el alioli?|Con ajo y aceite
+¿Qué legumbre lleva el cocido madrileño?|Garbanzos
+¿Qué legumbre lleva la fabada?|Fabes (alubias blancas)
+¿Qué es el «compango» de la fabada?|El chorizo, la morcilla y el tocino
+¿De qué está hecho el turrón de Jijona?|De almendra y miel
+¿Qué fruto seco se usa en el mazapán?|La almendra
+¿Cuál es la especia más cara del mundo?|El azafrán
+¿De qué planta se obtiene el azafrán?|De la flor del azafrán (Crocus sativus)
+¿Qué tipo de arroz se usa tradicionalmente en la paella?|Arroz redondo (bomba o senia)
+¿De qué animal es la leche del queso manchego?|De oveja
+¿De qué animal es la leche de la mozzarella tradicional?|De búfala
+¿Qué ingrediente da el color negro al arroz negro?|La tinta de calamar o sepia
+¿Qué verdura es la base del pisto?|El pimiento, el tomate y el calabacín
+¿Con qué se hace el guacamole?|Con aguacate
+¿Qué cereal se usa para hacer la cerveza normalmente?|La cebada
+¿De qué se hace el sake?|De arroz
+¿De qué planta se hace el tequila?|Del agave azul
+¿De qué se hace el chocolate?|Del cacao
+¿Qué fruta es la base de la sidra?|La manzana
+¿Qué tipo de pasta tiene forma de pajarita?|Farfalle
+¿Qué salsa italiana lleva albahaca, piñones y queso?|El pesto
+¿Qué plato japonés es pescado crudo cortado sin arroz?|El sashimi
+¿Qué queso se usa en la ensalada griega?|El queso feta
+¿Qué fruta tiene la piel con pinchos y huele muy fuerte?|El durián
+¿Qué dulce madrileño se come en San Isidro?|Las rosquillas (tontas y listas)
+¿Qué dulce se come el día de Todos los Santos?|Huesos de santo y buñuelos de viento
+¿Cómo se llama el bocadillo de calamares si se pide en Madrid?|Bocata de calamares`));
+
+/* ---------- Deportes ---------- */
+add('Deportes',L(`
+¿Cuántos Mundiales de fútbol ha ganado Brasil?|5
+¿En qué año ganó España el Mundial de fútbol femenino?|2023
+¿Quién marcó el gol de España en la final del Mundial de 2010?|Andrés Iniesta
+¿Cuántos Roland Garros ganó Rafa Nadal?|14
+¿Cuántos Tours de Francia ganó Miguel Induráin?|5
+¿Cuántos campeonatos del mundo de Fórmula 1 tiene Fernando Alonso?|2 (2005 y 2006)
+¿Cuántos jugadores de un equipo de waterpolo hay en el agua?|7
+¿Cuántos jugadores de un equipo de hockey sobre hielo hay en pista?|6
+¿Cuántos jugadores de un equipo de béisbol hay en el campo?|9
+¿Cuántos jugadores de un equipo de fútbol sala hay en pista?|5
+¿Cuántos puntos vale un touchdown?|6
+¿Cuántos puntos vale un tiro libre en baloncesto?|1
+¿Cuántos sets se juegan como máximo en voleibol?|5
+¿Qué significa «love» en el marcador de tenis?|Cero
+¿En qué deporte se hace un «home run»?|Béisbol
+¿En qué deporte se consigue un «birdie»?|Golf
+¿Cómo se llama el estadio del Real Madrid?|Santiago Bernabéu
+¿Cómo se llama el estadio del Atlético de Madrid?|Metropolitano
+¿Cómo se llama el estadio del FC Barcelona?|Camp Nou (Spotify Camp Nou)
+¿Cómo se llama el estadio del Sevilla FC?|Ramón Sánchez-Pizjuán
+¿Cómo se llama el estadio del Real Betis?|Benito Villamarín
+¿Cómo se llama el estadio del Valencia CF?|Mestalla
+¿Cómo se llama el estadio del Athletic Club?|San Mamés
+¿Cómo se llama el estadio de la Real Sociedad?|Anoeta (Reale Arena)
+¿Cómo se llama el estadio del Celta de Vigo?|Balaídos
+¿Cómo se llama el estadio del Villarreal?|Estadio de la Cerámica
+¿Cómo se llama el estadio del Manchester United?|Old Trafford
+¿Cómo se llama el estadio del Liverpool?|Anfield
+¿Cómo se llama el estadio del Bayern de Múnich?|Allianz Arena
+¿Qué estadio comparten el Milan y el Inter?|San Siro (Giuseppe Meazza)
+¿Cómo se llama el estadio de Boca Juniors?|La Bombonera
+¿Qué selección es «la Albiceleste»?|Argentina
+¿Qué selección es «la Canarinha»?|Brasil
+¿Qué selección es «la Azzurra»?|Italia
+¿Qué selección es «la Roja»?|España (también Chile)
+¿Qué selección es «les Bleus»?|Francia
+¿Qué selección era «la Naranja Mecánica»?|Países Bajos
+¿Qué selección de rugby es «los All Blacks»?|Nueva Zelanda
+¿Qué selección de rugby es «los Pumas»?|Argentina
+¿Qué selección es «la Vinotinto»?|Venezuela
+¿Qué selección es «la Celeste»?|Uruguay
+¿Cada cuántos años se juega el Mundial de fútbol?|Cada 4 años
+¿De qué país es originario el sumo?|Japón
+¿De qué país es originario el judo?|Japón
+¿De qué país es originario el taekwondo?|Corea
+¿De qué país es originaria la capoeira?|Brasil
+¿De qué país es originario el críquet?|Inglaterra
+¿Dónde se inventó el pádel?|México (Acapulco, 1969)
+¿Dónde se inventó el baloncesto?|Estados Unidos
+¿Quién inventó el baloncesto?|James Naismith
+¿Dónde nació el golf moderno?|Escocia
+¿Cuántos metros mide una piscina olímpica?|50 metros
+¿Cuántas calles tiene una pista de atletismo estándar?|8
+¿Quién tiene el récord mundial de los 100 metros?|Usain Bolt
+¿Cuál es el récord mundial de los 100 metros masculinos?|9,58 segundos
+¿Cuántos torneos de Grand Slam de tenis se juegan cada año?|4
+¿Qué española ganó Wimbledon en 2017?|Garbiñe Muguruza
+¿Qué española ganó Roland Garros en 1989?|Arantxa Sánchez Vicario
+¿Qué español ganó Wimbledon en 2023 y 2024?|Carlos Alcaraz
+¿Qué ciclista español ganó el Tour de Francia en 2008?|Carlos Sastre
+¿Cuántas medallas de oro olímpicas ganó Michael Phelps?|23
+¿Cuántas Copas de Europa (Champions) tiene el Real Madrid?|15
+¿Qué equipo ganó la Champions League de 2025?|El PSG
+¿Qué deporte practica la española Ana Peleteiro?|Atletismo (triple salto)
+¿Qué deporte practicaba Severiano Ballesteros?|Golf
+¿Qué deporte practica Carolina Marín?|Bádminton
+¿Qué deporte practicaba Pau Gasol?|Baloncesto
+¿En qué deporte se usa la expresión «jaque mate»?|Ajedrez
+¿Cuántas piezas tiene cada jugador al empezar una partida de ajedrez?|16
+¿Qué pieza de ajedrez solo se mueve en diagonal?|El alfil
+¿Qué pieza de ajedrez se mueve en forma de L?|El caballo
+¿En qué deporte se compite en el Tour, el Giro y la Vuelta?|Ciclismo
+¿En qué ciudad termina siempre el Tour de Francia?|París (con contadas excepciones)
+¿Qué rally famoso se corre ahora en Arabia Saudí?|El Dakar
+¿Cuánto dura un asalto de boxeo profesional?|3 minutos
+¿Cuántos asaltos tiene como máximo un combate de boxeo por un título mundial?|12
+¿Qué deporte se juega en el Masters de Augusta?|Golf
+¿Qué deporte se juega en la Super Bowl?|Fútbol americano
+¿Qué deporte se juega en la Copa Stanley?|Hockey sobre hielo
+¿Qué deporte se juega en la Copa Davis?|Tenis
+¿Qué deporte se juega en el Seis Naciones?|Rugby
+¿Qué deporte se juega en la Ryder Cup?|Golf
+¿Cuántos puntos se necesitan para ganar un set de bádminton?|21
+¿Cuántos juegos hay que ganar para llevarse un set de tenis?|6, con 2 de diferencia (o el tie-break en el 6-6)
+¿Cómo se llama el tanteo de 40 iguales en tenis?|Deuce (iguales)
+¿Qué deportista española (mujer) tiene más medallas olímpicas?|Mireia Belmonte
+¿En qué ciudad se celebrarán los Juegos Olímpicos de verano de 2028?|Los Ángeles
+¿En qué ciudad se celebraron los Juegos Olímpicos de 2024?|París
+¿Cuántos jugadores hay en un equipo de balonmano en pista?|7
+¿Qué país ha ganado más Mundiales de baloncesto masculino?|Estados Unidos
+¿Qué país ganó el Mundial de baloncesto de 2019?|España
+¿Qué piloto ganó el Mundial de F1 de 2021 a 2024?|Max Verstappen
+¿Con qué escudería ganó Fernando Alonso sus Mundiales?|Renault
+¿Cómo se llama el circuito de Fórmula 1 de Montmeló?|Circuit de Barcelona-Catalunya
+¿Qué tenista suizo ganó 20 Grand Slams?|Roger Federer
+¿Qué tenista serbio tiene el récord de Grand Slams masculinos?|Novak Djokovic`));
+add('Deportes',L(`
+Sevilla FC|Sevilla
+Real Betis|Sevilla
+Valencia CF|Valencia
+Levante UD|Valencia
+Villarreal CF|Villarreal
+Real Sociedad|San Sebastián
+Deportivo Alavés|Vitoria
+CA Osasuna|Pamplona
+RC Celta|Vigo
+RC Deportivo|A Coruña
+Real Oviedo|Oviedo
+Real Sporting|Gijón
+Racing de Santander|Santander
+Real Valladolid|Valladolid
+Real Zaragoza|Zaragoza
+SD Huesca|Huesca
+Getafe CF|Getafe
+CD Leganés|Leganés
+Rayo Vallecano|Madrid (Vallecas)
+RCD Espanyol|Barcelona (Cornellà)
+Girona FC|Girona
+RCD Mallorca|Palma
+UD Las Palmas|Las Palmas de Gran Canaria
+CD Tenerife|Santa Cruz de Tenerife
+Granada CF|Granada
+Málaga CF|Málaga
+Cádiz CF|Cádiz
+UD Almería|Almería
+Elche CF|Elche
+Hércules CF|Alicante
+Real Murcia|Murcia
+Córdoba CF|Córdoba
+Recreativo de Huelva|Huelva
+Albacete Balompié|Albacete
+CD Mirandés|Miranda de Ebro
+SD Eibar|Eibar
+Burgos CF|Burgos
+SD Ponferradina|Ponferrada
+Unicaja (baloncesto)|Málaga
+Baskonia (baloncesto)|Vitoria
+Joventut (baloncesto)|Badalona
+Juventus|Turín
+Inter|Milán
+AC Milan|Milán
+SSC Napoli|Nápoles
+AS Roma|Roma
+Bayern|Múnich
+Borussia Dortmund|Dortmund
+Ajax|Ámsterdam
+Paris Saint-Germain|París
+Olympique de Marsella|Marsella
+Manchester United|Mánchester
+Arsenal|Londres
+Chelsea|Londres
+Benfica|Lisboa
+Sporting de Portugal|Lisboa
+FC Porto|Oporto
+Boca Juniors|Buenos Aires
+River Plate|Buenos Aires
+Celtic|Glasgow
+Galatasaray|Estambul`),k=>`¿De qué ciudad es el club ${k}?`);
+add('Deportes',L(`
+Uruguay|1930
+Suiza|1954
+Suecia|1958
+Chile|1962
+Inglaterra|1966
+España|1982
+Estados Unidos|1994
+Corea del Sur y Japón|2002
+Sudáfrica|2010
+Rusia|2018
+Catar|2022`),k=>`¿En qué año se jugó el Mundial de fútbol de ${k}?`);
+add('Deportes',L(`
+Usain Bolt|Jamaica
+Michael Phelps|Estados Unidos
+Simone Biles|Estados Unidos
+Serena Williams|Estados Unidos
+LeBron James|Estados Unidos
+Michael Jordan|Estados Unidos
+Roger Federer|Suiza
+Novak Djokovic|Serbia
+Lewis Hamilton|Reino Unido
+Max Verstappen|Países Bajos
+Valentino Rossi|Italia
+Tadej Pogačar|Eslovenia
+Luka Dončić|Eslovenia
+Nikola Jokić|Serbia
+Giannis Antetokounmpo|Grecia
+Kylian Mbappé|Francia
+Erling Haaland|Noruega
+Mohamed Salah|Egipto
+Luka Modrić|Croacia
+Robert Lewandowski|Polonia
+Neymar|Brasil
+Vinícius Júnior|Brasil
+Luis Suárez|Uruguay
+Diego Maradona|Argentina
+Pelé|Brasil
+Johan Cruyff|Países Bajos
+Zinedine Zidane|Francia
+Iker Casillas|España
+Eliud Kipchoge|Kenia
+Nadia Comăneci|Rumanía
+Muhammad Ali|Estados Unidos
+Magnus Carlsen|Noruega
+Ilia Topuria|España (de origen georgiano)
+Naomi Osaka|Japón
+Shohei Ohtani|Japón
+Iga Świątek|Polonia
+Jannik Sinner|Italia
+Sergio «Checo» Pérez|México
+Ayrton Senna|Brasil
+Michael Schumacher|Alemania`),k=>`¿De qué país es ${k}?`);
+
+/* ---------- Lengua ---------- */
+add('Lengua',L(`
+caballo|yegua
+toro|vaca
+carnero|oveja
+gallo|gallina
+yerno|nuera
+actor|actriz
+emperador|emperatriz
+príncipe|princesa
+conde|condesa
+duque|duquesa
+héroe|heroína
+alcalde|alcaldesa
+tigre|tigresa
+jabalí|jabalina
+zángano|abeja
+caballero|dama
+padrino|madrina
+compadre|comadre
+sacerdote|sacerdotisa
+barón|baronesa
+zar|zarina
+abad|abadesa
+macho cabrío|cabra
+león|leona
+marqués|marquesa
+diablo|diablesa
+poeta|poetisa (o la poeta)
+rey|reina`),k=>`¿Cuál es el femenino de «${k}»?`);
+add('Lengua',L(`
+el lunes|los lunes
+el sofá|los sofás
+el menú|los menús
+el jabalí|los jabalíes (o jabalís)
+el régimen|los regímenes
+el carácter|los caracteres
+el espécimen|los especímenes
+el club|los clubes (o clubs)
+el álbum|los álbumes
+el tórax|los tórax
+la crisis|las crisis
+el récord|los récords
+el sándwich|los sándwiches
+la tesis|las tesis
+el pie|los pies
+el maní|los maníes (o manís)
+el esquí|los esquís
+el champú|los champús
+el virus|los virus
+el país|los países`),k=>`¿Cuál es el plural de «${k}»?`);
+add('Lengua',L(`
+lobos|Manada
+peces|Banco (o cardumen)
+abejas|Enjambre
+pájaros en vuelo|Bandada
+ovejas|Rebaño
+cerdos|Piara
+perros de caza|Jauría
+mulas o burros|Recua
+dos bueyes|Yunta
+crías nacidas a la vez|Camada
+islas|Archipiélago
+estrellas|Constelación
+montañas|Cordillera
+barcos|Flota
+árboles|Arboleda
+álamos|Alameda
+pinos|Pinar
+olivos|Olivar
+vides|Viñedo
+libros|Biblioteca
+palabras de una lengua|Vocabulario (o léxico)
+músicos|Orquesta
+cantantes|Coro
+marineros de un barco|Tripulación
+soldados|Ejército
+alumnos|Alumnado
+profesores|Profesorado
+sacerdotes|Clero
+periódicos archivados|Hemeroteca
+cuadros|Pinacoteca
+cubiertos|Cubertería
+platos y vasos|Vajilla
+doce unidades|Docena
+cien años|Siglo
+diez años|Década
+cinco años|Lustro
+mil años|Milenio
+mapas|Atlas
+llaves|Llavero
+encinas|Encinar`),k=>`¿Cómo se llama un conjunto de ${k}?`);
+add('Lengua',L(`
+A quien madruga…|…Dios le ayuda
+Más vale pájaro en mano…|…que ciento volando
+Perro ladrador…|…poco mordedor
+Al mal tiempo…|…buena cara
+Ojos que no ven…|…corazón que no siente
+Camarón que se duerme…|…se lo lleva la corriente
+A caballo regalado…|…no le mires el diente
+En casa del herrero…|…cuchillo de palo
+En boca cerrada…|…no entran moscas
+Cuando el gato no está…|…los ratones bailan
+Del árbol caído…|…todos hacen leña
+No por mucho madrugar…|…amanece más temprano
+Dime con quién andas…|…y te diré quién eres
+Cría cuervos…|…y te sacarán los ojos
+A falta de pan…|…buenas son tortas
+Quien mucho abarca…|…poco aprieta
+Más vale tarde…|…que nunca
+El que la sigue…|…la consigue
+Agua que no has de beber…|…déjala correr
+A buen entendedor…|…pocas palabras bastan
+Quien siembra vientos…|…recoge tempestades
+No hay mal…|…que por bien no venga
+Donde fueres…|…haz lo que vieres
+Dios los cría…|…y ellos se juntan
+Ojo por ojo…|…diente por diente
+Zapatero…|…a tus zapatos
+Quien bien te quiere…|…te hará llorar
+El hábito…|…no hace al monje
+Cuando el río suena…|…agua lleva
+Hijo de gato…|…caza ratón
+Cada oveja…|…con su pareja
+Más sabe el diablo por viejo…|…que por diablo
+No dejes para mañana…|…lo que puedas hacer hoy
+Quien ríe el último…|…ríe mejor
+A rey muerto…|…rey puesto
+Lo que no mata…|…engorda
+De tal palo…|…tal astilla
+En abril…|…aguas mil
+Hasta el cuarenta de mayo…|…no te quites el sayo
+Año de nieves…|…año de bienes
+Las apariencias…|…engañan
+Una golondrina…|…no hace verano
+Dame pan…|…y dime tonto
+Ande yo caliente…|…y ríase la gente
+Quien tiene un amigo…|…tiene un tesoro
+Más vale prevenir…|…que curar
+El que avisa…|…no es traidor
+Haz el bien…|…y no mires a quién
+Al pan, pan…|…y al vino, vino
+Querer es…|…poder
+Piensa el ladrón…|…que todos son de su condición
+A palabras necias…|…oídos sordos
+Las cuentas claras…|…y el chocolate espeso
+Muerto el perro…|…se acabó la rabia
+No hay mal que cien años dure…|…ni cuerpo que lo resista
+A Dios rogando…|…y con el mazo dando
+Quien con niños se acuesta…|…mojado se levanta
+Gato escaldado…|…del agua fría huye
+Tanto va el cántaro a la fuente…|…que al final se rompe
+Entre col y col…|…lechuga
+Poco a poco…|…se va lejos
+Ver para…|…creer
+Barriga llena…|…corazón contento
+El tiempo es…|…oro
+Genio y figura…|…hasta la sepultura
+Mal de muchos…|…consuelo de tontos
+Cada loco…|…con su tema
+Obras son amores…|…que no buenas razones
+En martes…|…ni te cases ni te embarques
+Por la boca…|…muere el pez
+Agua pasada…|…no mueve molino
+Arrieros somos…|…y en el camino nos encontraremos
+Del dicho al hecho…|…hay mucho trecho
+El que no llora…|…no mama
+Cuando una puerta se cierra…|…otra se abre
+Hablando del rey de Roma…|…por la puerta asoma
+Unos tienen la fama…|…y otros cardan la lana
+No es oro…|…todo lo que reluce
+A otro perro…|…con ese hueso`),k=>`Completa el refrán: «${k}»`);
+add('Lengua',L(`
+¿Qué significa la expresión «estar en las nubes»?|Estar distraído
+¿Qué significa «tomar el pelo»?|Burlarse de alguien o engañarle en broma
+¿Qué significa «meter la pata»?|Equivocarse o hacer algo inoportuno
+¿Qué significa «estar como una cabra»?|Estar loco
+¿Qué significa «costar un ojo de la cara»?|Ser muy caro
+¿Qué significa «ponerse las pilas»?|Espabilarse, ponerse en marcha
+¿Qué significa «echar una mano»?|Ayudar
+¿Qué significa «ser pan comido»?|Ser muy fácil
+¿Qué significa «dar calabazas»?|Rechazar a alguien (o suspender)
+¿Qué significa «estar hecho polvo»?|Estar muy cansado
+¿Qué significa «pedir peras al olmo»?|Pedir algo imposible
+¿Qué significa «hacer la pelota»?|Adular a alguien para conseguir algo
+¿Qué significa «irse por las ramas»?|Desviarse del tema
+¿Qué significa «estar en el quinto pino»?|Estar muy lejos
+¿Qué significa «no tener pelos en la lengua»?|Hablar sin rodeos
+¿Qué significa «buscarle tres pies al gato»?|Complicar algo sin necesidad
+¿Qué significa «a buenas horas, mangas verdes»?|Que algo llega demasiado tarde
+¿Qué significa «estar sin blanca»?|No tener dinero
+¿Qué significa «dar gato por liebre»?|Engañar dando algo peor
+¿Qué significa «tirar la casa por la ventana»?|Gastar sin medida
+¿Qué significa «ser un cero a la izquierda»?|No contar para nada
+¿Qué significa «hablar por los codos»?|Hablar demasiado
+¿Qué significa «tener mala leche»?|Tener mal carácter o mala intención
+¿Qué significa «quedarse de piedra»?|Quedarse muy sorprendido
+¿Qué significa «estar como pez en el agua»?|Estar muy cómodo
+¿Qué significa «ser uña y carne»?|Ser inseparables
+¿Qué significa «dar en el clavo»?|Acertar
+¿Qué significa «hacer novillos»?|Faltar a clase sin permiso
+¿Qué significa «rizar el rizo»?|Complicar algo más de la cuenta
+¿Qué significa «verle las orejas al lobo»?|Darse cuenta de un peligro cercano
+¿Cuál es el sinónimo de «perspicaz»?|Agudo, sagaz
+¿Cuál es la palabra más larga del diccionario de la RAE (sin plurales ni formas verbales)?|Electroencefalografista (23 letras)
+¿Qué palabra contiene todas las vocales una sola vez y empieza por «m»?|Murciélago
+¿Cómo se llaman las palabras que suenan igual pero se escriben distinto (como «vaca» y «baca»)?|Homófonas
+¿Cómo se llaman las palabras con la sílaba tónica en la penúltima sílaba?|Llanas (o graves)
+¿Cómo se llaman las palabras con la sílaba tónica en la antepenúltima sílaba?|Esdrújulas
+¿Llevan siempre tilde las palabras esdrújulas?|Sí, siempre
+¿Qué institución publica el diccionario oficial del español?|La Real Academia Española (RAE)`));
+
+/* ---------- Siglas ---------- */
+add('Siglas',L(`
+ONU|Organización de las Naciones Unidas
+OTAN|Organización del Tratado del Atlántico Norte
+UE|Unión Europea
+ADN|Ácido desoxirribonucleico
+DNI|Documento Nacional de Identidad
+IVA|Impuesto sobre el Valor Añadido
+IRPF|Impuesto sobre la Renta de las Personas Físicas
+NIF|Número de Identificación Fiscal
+ONCE|Organización Nacional de Ciegos Españoles
+RENFE|Red Nacional de los Ferrocarriles Españoles
+AVE|Alta Velocidad Española
+RAE|Real Academia Española
+NASA|Administración Nacional de Aeronáutica y el Espacio (de EE. UU.)
+UNESCO|Organización de las Naciones Unidas para la Educación, la Ciencia y la Cultura
+UNICEF|Fondo de las Naciones Unidas para la Infancia
+OMS|Organización Mundial de la Salud
+FIFA|Federación Internacional de Fútbol Asociación
+UEFA|Unión de Asociaciones Europeas de Fútbol
+NBA|National Basketball Association (liga de baloncesto de EE. UU.)
+ACB|Asociación de Clubes de Baloncesto
+DGT|Dirección General de Tráfico
+ITV|Inspección Técnica de Vehículos
+PIB|Producto Interior Bruto
+IPC|Índice de Precios de Consumo
+SMS|Servicio de mensajes cortos (Short Message Service)
+GPS|Sistema de posicionamiento global
+USB|Bus universal en serie (Universal Serial Bus)
+PDF|Formato de documento portátil (Portable Document Format)
+WWW|World Wide Web
+LED|Diodo emisor de luz
+CPU|Unidad central de procesamiento
+RAM|Memoria de acceso aleatorio
+ONG|Organización No Gubernamental
+OVNI|Objeto Volador No Identificado
+SIDA|Síndrome de Inmunodeficiencia Adquirida
+UCI|Unidad de Cuidados Intensivos
+BOE|Boletín Oficial del Estado
+CIS|Centro de Investigaciones Sociológicas
+RTVE|Radio Televisión Española
+FMI|Fondo Monetario Internacional
+OPEP|Organización de Países Exportadores de Petróleo
+CSIC|Consejo Superior de Investigaciones Científicas
+UNED|Universidad Nacional de Educación a Distancia
+ESO|Educación Secundaria Obligatoria
+VIP|Persona muy importante (Very Important Person)
+FAQ|Preguntas frecuentes
+DVD|Disco versátil digital
+HTML|Lenguaje de marcado de hipertexto
+IA|Inteligencia artificial
+ISBN|Número internacional normalizado del libro
+IBAN|Código internacional de cuenta bancaria
+AEMET|Agencia Estatal de Meteorología
+ESA|Agencia Espacial Europea
+CERN|Organización Europea para la Investigación Nuclear
+OCDE|Organización para la Cooperación y el Desarrollo Económicos
+CV|Currículum vítae
+DJ|Disc jockey (pinchadiscos)
+ASAP|Lo antes posible (As Soon As Possible)
+LOL|Reírse a carcajadas (Laughing Out Loud)
+JJ. OO.|Juegos Olímpicos
+EE. UU.|Estados Unidos
+S. A.|Sociedad Anónima
+S. L.|Sociedad Limitada
+P. D.|Posdata
+a. C.|Antes de Cristo
+UVI|Unidad de Vigilancia Intensiva
+CEO|Consejero delegado (Chief Executive Officer)
+PYME|Pequeña y mediana empresa
+TFG|Trabajo de Fin de Grado`),k=>`¿Qué significan las siglas ${k}?`);
+
+/* ---------- Inglés ---------- */
+const VERBS=L(`
+go|went|gone
+be|was / were|been
+have|had|had
+do|did|done
+say|said|said
+make|made|made
+get|got|got (gotten en EE. UU.)
+know|knew|known
+think|thought|thought
+take|took|taken
+see|saw|seen
+come|came|come
+give|gave|given
+find|found|found
+tell|told|told
+become|became|become
+leave|left|left
+feel|felt|felt
+bring|brought|brought
+begin|began|begun
+keep|kept|kept
+hold|held|held
+write|wrote|written
+stand|stood|stood
+hear|heard|heard
+let|let|let
+mean|meant|meant
+meet|met|met
+run|ran|run
+pay|paid|paid
+sit|sat|sat
+speak|spoke|spoken
+lead|led|led
+read|read|read
+grow|grew|grown
+lose|lost|lost
+fall|fell|fallen
+send|sent|sent
+build|built|built
+understand|understood|understood
+draw|drew|drawn
+break|broke|broken
+spend|spent|spent
+cut|cut|cut
+rise|rose|risen
+drive|drove|driven
+buy|bought|bought
+wear|wore|worn
+choose|chose|chosen
+eat|ate|eaten
+drink|drank|drunk
+sing|sang|sung
+swim|swam|swum
+fly|flew|flown
+forget|forgot|forgotten
+sleep|slept|slept
+sell|sold|sold
+teach|taught|taught
+catch|caught|caught
+fight|fought|fought
+win|won|won
+throw|threw|thrown
+ride|rode|ridden
+hide|hid|hidden
+bite|bit|bitten
+freeze|froze|frozen
+steal|stole|stolen
+wake|woke|woken
+shake|shook|shaken
+blow|blew|blown
+shoot|shot|shot
+sink|sank|sunk
+ring|rang|rung
+feed|fed|fed
+hang|hung|hung
+dig|dug|dug
+lend|lent|lent
+forgive|forgave|forgiven
+hit|hit|hit
+hurt|hurt|hurt
+put|put|put
+shut|shut|shut
+cost|cost|cost
+beat|beat|beaten
+bleed|bled|bled
+draw|drew|drawn
+fly|flew|flown`);
+const seenV=new Set();VERBS.forEach(([v,p,pp])=>{if(seenV.has(v))return;seenV.add(v);QA.push(['Inglés',`¿Cuál es el pasado simple de «to ${v}»?`,p]);QA.push(['Inglés',`¿Cuál es el participio de «to ${v}»?`,pp])});
+add('Inglés',L(`
+¿Cómo se dice «otoño» en inglés de EE. UU.?|Fall (en Reino Unido, autumn)
+¿Cómo se dice «piso» en inglés británico y en el de EE. UU.?|Flat (británico) y apartment (EE. UU.)
+¿Cómo se dice «patatas fritas de bolsa» en inglés británico?|Crisps
+¿Cómo se dice «patatas fritas de bolsa» en inglés de EE. UU.?|Chips
+¿Cómo se dice «metro» en Londres?|The Underground (o the Tube)
+¿Cómo se dice «metro» en Nueva York?|The subway
+¿Cómo se dice «gasolina» en EE. UU.?|Gas (o gasoline)
+¿Cómo se dice «gasolina» en Reino Unido?|Petrol
+¿Cómo se dice «ascensor» en EE. UU.?|Elevator
+¿Cómo se dice «camión» en Reino Unido?|Lorry
+¿Qué significa «I'm starving»?|Me muero de hambre
+¿Qué significa «It's raining cats and dogs»?|Está lloviendo a cántaros
+¿Qué significa «Break a leg»?|¡Mucha suerte! (en teatro)
+¿Qué significa «Piece of cake»?|Pan comido, algo muy fácil
+¿Qué significa «Once in a blue moon»?|De Pascuas a Ramos, muy de vez en cuando
+¿Qué significa «Under the weather»?|Pachucho, un poco enfermo
+¿Qué significa «Spill the beans»?|Desvelar un secreto
+¿Qué significa «Hit the sack»?|Irse a dormir
+¿Qué significa «Cost an arm and a leg»?|Costar un ojo de la cara
+¿Qué significa «Let the cat out of the bag»?|Irse de la lengua, revelar un secreto
+¿Qué significa «Call it a day»?|Dar por terminado algo por hoy
+¿Qué significa «Kill two birds with one stone»?|Matar dos pájaros de un tiro
+¿Cuál es el plural de «child»?|Children
+¿Cuál es el plural de «mouse»?|Mice
+¿Cuál es el plural de «tooth»?|Teeth
+¿Cuál es el plural de «foot»?|Feet
+¿Cuál es el plural de «woman»?|Women
+¿Cuál es el plural de «sheep»?|Sheep
+¿Cuál es el plural de «person»?|People
+¿Cuál es el plural de «knife»?|Knives
+¿Cuál es el plural de «goose»?|Geese
+¿Cuál es el plural de «fish»?|Fish
+¿Cómo se dice «miércoles» en inglés?|Wednesday
+¿Cómo se dice «jueves» en inglés?|Thursday
+¿Cómo se dice «febrero» en inglés?|February
+¿Cómo se dice «cuarenta» en inglés?|Forty
+¿Cómo se dice «noventa» en inglés?|Ninety
+¿Cómo se dice «zanahoria» en inglés?|Carrot`));
+
+/* ---------- Idiomas ---------- */
+const WORDS=[['gracias','merci','grazie','danke','obrigado'],['hola','bonjour','ciao','hallo','olá'],['adiós','au revoir','arrivederci','auf Wiedersehen','adeus'],['buenos días','bonjour','buongiorno','guten Morgen','bom dia'],['buenas noches','bonne nuit','buonanotte','gute Nacht','boa noite'],['agua','eau','acqua','Wasser','água'],['perro','chien','cane','Hund','cão'],['gato','chat','gatto','Katze',''],['casa','maison','','Haus',''],['cerveza','bière','birra','Bier','cerveja'],['amor','amour','amore','Liebe',''],['mañana (día siguiente)','demain','domani','morgen','amanhã'],['lo siento','désolé','mi dispiace','es tut mir leid','desculpe'],['queso','fromage','formaggio','Käse','queijo'],['pan','pain','pane','Brot','pão'],['manzana','pomme','mela','Apfel','maçã'],['por favor','s\'il vous plaît','per favore','bitte',''],['sí','oui','sì','ja','sim'],['amigo','ami','amico','Freund','amigo'],['playa','plage','spiaggia','Strand','praia']];
+const LN=['francés','italiano','alemán','portugués'];
+WORDS.forEach(w=>LN.forEach((ln,i)=>{const t=w[i+1];if(t&&t.toLowerCase()!==w[0])QA.push(['Idiomas',`¿Cómo se dice «${w[0]}» en ${ln}?`,t])}));
+add('Idiomas',L(`
+¿Qué idioma se habla en Brasil?|Portugués
+¿Qué significa «arigatō» en japonés?|Gracias
+¿Qué significa «konnichiwa» en japonés?|Hola (buenas tardes)
+¿Qué significa «xièxie» en chino mandarín?|Gracias
+¿Qué significa «shalom» en hebreo?|Paz (se usa como saludo)
+¿Qué significa «salam» en árabe?|Paz (se usa como saludo)
+¿Qué significa «spasibo» en ruso?|Gracias
+¿Qué significa «skål» en sueco?|¡Salud! (al brindar)
+¿Qué significa «prost» en alemán?|¡Salud! (al brindar)
+¿Qué significa «cin cin» en italiano?|¡Salud! (al brindar)
+¿Qué significa «santé» en francés?|Salud
+¿Qué significa «kalimera» en griego?|Buenos días
+¿Qué significa «aloha» en hawaiano?|Hola y adiós (y amor)
+¿Qué significa «namaste»?|Saludo respetuoso en la India y Nepal
+¿Qué significa «eskerrik asko» en euskera?|Gracias
+¿Qué significa «moltes gràcies» en catalán?|Muchas gracias
+¿Qué significa «grazas» en gallego?|Gracias
+¿Qué significa «bon dia» en catalán?|Buenos días
+¿Qué significa «kaixo» en euskera?|Hola
+¿Qué significa «agur» en euskera?|Adiós`));
+
+/* ---------- General ---------- */
+add('General',L(`
+¿Cuántos días tiene febrero en un año bisiesto?|29
+¿Cuántas semanas tiene un año?|52
+¿Qué meses tienen 28 días?|Todos (febrero tiene solo 28 o 29)
+¿Cuántas piezas tiene un juego de ajedrez completo?|32
+¿Cuántas cartas tiene una baraja española?|40 (48 con ochos y nueves)
+¿Cuántas cartas tiene una baraja francesa sin comodines?|52
+¿Cuántos puntos suman todas las caras de un dado?|21
+¿Cuántas fichas tiene un dominó?|28
+¿Qué color sale al mezclar azul y amarillo?|Verde
+¿Qué color sale al mezclar rojo y amarillo?|Naranja
+¿Qué color sale al mezclar rojo y azul?|Morado (violeta)
+¿Qué color sale al mezclar blanco y negro?|Gris
+¿Cuáles son los colores primarios en pintura?|Amarillo, cian (azul) y magenta (rojo)
+¿Cuántos colores tiene la bandera de España?|2: rojo y amarillo
+¿Qué animal aparece en la bandera de Gales?|Un dragón rojo
+¿Qué hoja aparece en la bandera de Canadá?|Una hoja de arce
+¿Cuántas estrellas tiene la bandera de Estados Unidos?|50
+¿Cuántas franjas tiene la bandera de Estados Unidos?|13
+¿Cuántas estrellas tiene la bandera de la Unión Europea?|12
+¿Qué lema aparece en la bandera de Brasil?|«Ordem e Progresso» (Orden y progreso)
+¿Cómo se llama el himno de Francia?|La Marsellesa
+¿Tiene letra oficial el himno de España?|No, no tiene letra oficial
+¿Cómo se llama el himno de España?|La Marcha Real
+¿Qué día es San Valentín?|El 14 de febrero
+¿Qué día es Halloween?|El 31 de octubre
+¿Qué día es Nochebuena?|El 24 de diciembre
+¿Qué noche se celebra San Juan?|La noche del 23 al 24 de junio
+¿Qué día es San Isidro, patrón de Madrid?|El 15 de mayo
+¿Qué día empieza San Fermín?|El 6 de julio (el chupinazo); el santo es el 7
+¿En qué ciudad se celebran las Fallas?|Valencia
+¿En qué pueblo se celebra la Tomatina?|Buñol (Valencia)
+¿Dónde se celebra la Feria de Abril?|Sevilla
+¿Qué carnaval es famoso por sus chirigotas?|El de Cádiz
+¿Qué carnaval de España es famoso por su reina y sus murgas en Canarias?|El de Santa Cruz de Tenerife
+¿Cómo se llaman los Reyes Magos?|Melchor, Gaspar y Baltasar
+¿Qué dulce se come el Día de Reyes?|El roscón de Reyes
+¿Qué dulce típico se come en Semana Santa?|Las torrijas
+¿Cuántos ceros tiene un millón?|6
+¿Cuántos ceros tiene un billón en español?|12
+¿Cuántos centímetros tiene un metro?|100
+¿Cuántos gramos tiene un kilo?|1.000
+¿Cuántos mililitros tiene un litro?|1.000
+¿Cuántos metros cuadrados tiene una hectárea?|10.000
+¿Cuántos centímetros mide una pulgada?|2,54
+¿Cuántos kilómetros mide una milla terrestre?|Unos 1,6 (1,609)
+¿Qué mide un nudo?|La velocidad: una milla náutica por hora
+¿Cuántos minutos dura un partido de fútbol con prórroga completa?|120
+¿Cuántas horas tiene una semana?|168
+¿A qué hora es el mediodía?|A las 12:00
+¿Cuál es el número de emergencias en Europa?|112
+¿Cuántas teclas de números tiene un teclado de teléfono?|10 (del 0 al 9)
+¿Qué tecla del ordenador se usa para borrar hacia atrás?|Retroceso (Backspace)
+¿Qué atajo de teclado copia en Windows?|Ctrl + C
+¿Qué atajo de teclado pega en Windows?|Ctrl + V
+¿Qué atajo de teclado deshace en Windows?|Ctrl + Z
+¿Cuántas cuerdas tiene un ukelele?|4
+¿Qué día se celebra el Día de la Hispanidad?|El 12 de octubre
+¿Qué día se celebra el Día de la Comunidad de Madrid?|El 2 de mayo
+¿Qué día es Todos los Santos?|El 1 de noviembre
+¿Cuál es la piedra preciosa roja más conocida?|El rubí
+¿Cuál es la piedra preciosa verde más conocida?|La esmeralda
+¿Cuál es la piedra preciosa azul más conocida?|El zafiro
+¿Qué aniversario de boda son las bodas de oro?|50 años
+¿Qué aniversario de boda son las bodas de plata?|25 años
+¿Qué aniversario de boda son las bodas de diamante?|60 años
+¿Cuántos jugadores hay en un equipo de pádel?|2
+¿Cuál es el signo del zodiaco de alguien nacido el 1 de enero?|Capricornio
+¿Cuál es el signo del zodiaco de alguien nacido el 15 de agosto?|Leo
+¿Cuál es el signo del zodiaco de alguien nacido el 25 de diciembre?|Capricornio
+¿Cuál es el signo del zodiaco de alguien nacido el 1 de mayo?|Tauro
+¿Qué animal representa el signo de Aries?|El carnero
+¿Qué animal representa el signo de Cáncer?|El cangrejo
+¿Cuál es el animal del año 2024 en el horóscopo chino?|El dragón
+¿Cómo se llama el muñeco que se quema en las Fallas?|Ninot
+¿Qué se tira en la Tomatina?|Tomates
+¿Qué ciudad gallega es destino del Camino de Santiago?|Santiago de Compostela
+¿Qué símbolo llevan los peregrinos del Camino de Santiago?|La concha de vieira
+¿Qué edificio de Madrid tiene el reloj de las campanadas de Nochevieja?|La Real Casa de Correos (Puerta del Sol)
+¿Cuántas campanadas suenan a medianoche en Nochevieja?|12
+¿Cómo se llaman las campanadas previas a las 12 en Nochevieja?|Los cuartos
+¿Cuál es el aeropuerto principal de Madrid?|Adolfo Suárez Madrid-Barajas
+¿Cuántas líneas tiene el Metro de Madrid (sin contar el Ramal)?|12
+¿De qué color es la línea 1 del Metro de Barcelona?|Roja`));
+
+/* ---------- Mates (rellena hasta 2.884) ---------- */
+const MQ=[];
+for(let a=13;a<=19;a++)for(let b=a;b<=19;b++)MQ.push([`¿Cuánto es ${a} × ${b}?`,a*b]);
+for(let n=26;n<=40;n++)MQ.push([`¿Cuánto es ${n} al cuadrado?`,th(n*n)]);
+for(let d=6;d<=12;d++)for(let q=13;q<=25;q++)MQ.push([`¿Cuánto es ${th(d*q)} entre ${d}?`,q]);
+[37,48,56,73,85,99,125,148,175,236,350,475,612,725,850,999].forEach(n=>{MQ.push([`¿Cuál es el doble de ${n}?`,th(n*2)]);MQ.push([`¿Cuál es el triple de ${n}?`,th(n*3)])});
+[74,96,138,250,346,512,780,1000,1250,2500,3700,5000].forEach(n=>MQ.push([`¿Cuál es la mitad de ${th(n)}?`,th(n/2)]));
+const seq=(s,d,k)=>Array.from({length:k},(_,i)=>s+d*i);
+[[3,4],[5,7],[2,9],[10,15],[1,11],[4,6],[100,-7],[50,-4],[7,8],[12,12]].forEach(([s,d])=>{const q=seq(s,d,5);MQ.push([`¿Qué número sigue en la serie ${q.slice(0,4).join(', ')}…?`,q[4]])});
+[[2,2],[3,3],[1,4],[5,2],[2,5],[1,10]].forEach(([s,r])=>{const q=[s,s*r,s*r*r,s*r*r*r];MQ.push([`¿Qué número sigue en la serie ${q.join(', ')}…?`,th(s*r**4)])});
+MQ.push(['¿Qué número sigue en la serie 1, 1, 2, 3, 5, 8…?',13],['¿Qué número sigue en la serie 1, 4, 9, 16, 25…?',36],['¿Qué número sigue en la serie 2, 3, 5, 7, 11…?',13],['¿Qué número sigue en la serie 1, 8, 27, 64…?',125]);
+const rom=n=>{let r='';[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']].forEach(([v,s])=>{while(n>=v){r+=s;n-=v}});return r};
+const used=new Set([4,9,14,19,24,29,39,40,44,49,66,88,90,99,150,250,333,400,444,500,555,777,888,900,999,1066,1212,1492,1789,1808,1900,1936,1969,1978,1999,2000,2010,2026]);
+const romN=[];for(let n=3;n<=3999&&romN.length<400;n+=n<100?3:n<1000?17:53){if(!used.has(n))romN.push(n)}
+const mathCats=['Mates'];
+QA.forEach(()=>{});
+const need=2884-QA.length-MQ.length;
+let i=0;while(MQ.length<2884-QA.length&&i<romN.length){const n=romN[i++];MQ.push(i%2?[`¿Cómo se escribe ${th(n)} en números romanos?`,rom(n)]:[`¿Qué número es ${rom(n)} en romanos?`,th(n)])}
+const EX=[];
+[10,20,40,60,70,80,90].forEach(p=>[50,150,300,450,600,750,900,1200].forEach(n=>EX.push([`¿Cuánto es el ${p} % de ${th(n)}?`,th(p*n/100)])));
+[1,2,3,4,5,6].forEach(h=>EX.push([`¿Cuántos segundos hay en ${h} hora${h>1?'s':''}?`,th(h*3600)]));
+[2,3,4,5,6].forEach(w=>EX.push([`¿Cuántas horas hay en ${w} semanas?`,th(w*168)]));
+[[503,248],[712,389],[945,467],[620,175],[831,296],[1000,357],[1200,485],[864,579],[731,248],[555,199],[402,167],[999,123],[750,275],[630,345],[910,456],[480,195],[1500,725],[2000,875],[333,178],[808,409]].forEach(([a,b])=>{EX.push([`¿Cuánto es ${th(a)} − ${b}?`,th(a-b)]);EX.push([`¿Cuánto es ${th(a)} + ${b}?`,th(a+b)])});
+for(let a=3;a<=12;a+=1)for(const b of [7,15,25])EX.push([`¿Cuál es el área de un rectángulo de ${a} × ${b} cm?`,`${a*b} cm²`]);
+[3,5,7,9,11,12,15,18,20,25,30,40,45,50,75].forEach(l=>EX.push([`¿Cuál es el perímetro de un cuadrado de ${l} cm de lado?`,`${4*l} cm`]));
+[[4,6],[6,8],[10,5],[12,7],[8,9],[14,10],[20,6],[16,5],[9,12],[30,4],[11,8],[18,10],[24,5],[7,10],[50,3],[22,6],[40,5],[13,6],[26,4],[15,8],[100,2],[36,3],[44,5],[60,7],[28,9]].forEach(([b,h])=>EX.push([`¿Cuál es el área de un triángulo de base ${b} cm y altura ${h} cm?`,`${b*h/2} cm²`]));
+let k=0;while(MQ.length<2884-QA.length&&k<EX.length)MQ.push(EX[k++]);
+if(MQ.length<2884-QA.length)throw new Error('faltan preguntas: '+(2884-QA.length-MQ.length));
+MQ.forEach(([q,a])=>QA.push(['Mates',q,String(a)]));
+})();
+
+const QA_ICON={'Geografía':'🌍','Ciencia':'🔬','Historia':'🏛️','Arte y cultura':'🎨','Comida':'🍽️','Deportes':'⚽','Lengua':'📚','Siglas':'🔠','Inglés':'🇬🇧','Idiomas':'🗣️','General':'💡','Mates':'🧮'};
+const cap1=s=>s.charAt(0).toUpperCase()+s.slice(1);
+def({id:'losabes',icon:'🎓',name:'¿Lo sabes?',c:'#0ea5e9',min:1,max:16,best:[2,8],desc:'2.884 preguntas de respuesta libre: piensa y descubre la respuesta.',
+ rules:`<ol><li>Sale una pregunta sin opciones: hay que decir la respuesta en voz alta.</li><li>Pulsad <b>Descubrir respuesta</b> para comprobarla.</li><li><b>Por turnos</b>: cada pregunta es para un jugador; si acierta, +1.<br><b>Al vuelo</b>: la responde el primero que la diga; tocad su nombre.</li><li>Gana quien llegue antes a los puntos elegidos (o jugad sin final).</li></ol><p>${th2(QA.length)} preguntas en ${Object.keys(QA_ICON).length} categorías.</p>`,
+ start(){const g=this,cats=Object.keys(QA_ICON),decks={};cats.forEach(c=>decks[c]=deck(QA.filter(q=>q[0]===c)));
+  let sel=new Set(cats.filter(c=>c!=='Mates')),style=P().length>1?'turnos':'solo',goal=10,sc=zero(),turn=0,n=0,hits=0;
+  const setup=()=>{const tot=QA.filter(q=>sel.has(q[0])).length;
+   screen(g,`<p class="lbl">Categorías · ${th2(tot)} preguntas</p><div class="cats">${cats.map(c=>`<button data-a="c" data-id="${c}" class="${sel.has(c)?'on':''}">${QA_ICON[c]} ${c}<br><small style="opacity:.7">${th2(QA.filter(q=>q[0]===c).length)}</small></button>`).join('')}</div><button class="btn" data-a="all">${sel.size===cats.length?'Quitar todas':'Marcar todas'}</button>
+    ${P().length>1?`<p class="lbl" style="margin-top:14px">¿Quién responde?</p><div class="seg"><button data-a="st" data-v="turnos" class="${style==='turnos'?'on':''}">🔄 Por turnos</button><button data-a="st" data-v="vuelo" class="${style==='vuelo'?'on':''}">⚡ Al vuelo</button></div><p class="lbl" style="margin-top:14px">Gana quien llegue a</p><div class="seg">${[5,10,15,0].map(v=>`<button data-a="gl" data-v="${v}" class="${goal===v?'on':''}">${v||'Sin final'}</button>`).join('')}</div>`:'<p class="sub">Juegas solo: cuenta tus aciertos.</p>'}
+    <button class="btn primary xl" data-a="go" style="margin-top:16px" ${sel.size?'':'disabled'}>¡Empezar!</button>`,{
+    c:t=>{const c=t.dataset.id;sel.has(c)?sel.delete(c):sel.add(c);setup()},all:()=>{sel=sel.size===cats.length?new Set():new Set(cats);setup()},
+    st:t=>{style=t.dataset.v;setup()},gl:t=>{goal=+t.dataset.v;setup()},go:()=>{if(!sel.size)return;sc=zero();turn=0;n=0;hits=0;ask()}})};
+  const pickQ=()=>{const arr=[...sel],c=arr[rnd(arr.length)];return decks[c]()};
+  const ask=()=>{const it=pickQ(),who=style==='turnos'?P()[turn%P().length]:null;n++;
+   screen(g,`<p class="lbl center">${QA_ICON[it[0]]} ${it[0]} · pregunta ${n}${goal&&style!=='solo'?' · a '+goal+' puntos':''}</p>${who?`<p class="center" style="font-weight:800;font-size:18px;margin:4px 0">Para <span style="color:var(--yel)">${esc(who)}</span></p>`:''}
+    <div class="qa-card"><div class="qa-q">${esc(it[1])}</div><div class="qa-a" id="qaA"><span class="lbl">Respuesta</span><div>${esc(cap1(it[2]))}</div></div></div>
+    <button class="qa-btn" id="qaB" data-a="rv"><span>👀</span> Descubrir respuesta</button><div id="qaR"></div>`,{rv:()=>reveal(it,who)})};
+  const reveal=(it,who)=>{const a=$('#qaA'),b=$('#qaB');if(!a||a.classList.contains('show'))return;a.classList.add('show');b.style.display='none';beep(760,.08);beep(1020,.12);vib(20);
+   const r=$('#qaR');
+   if(style==='solo')r.innerHTML=`<div class="btns"><button class="btn ok" data-a="y">✓ La sabía</button><button class="btn no" data-a="x">✗ No la sabía</button></div><p class="stats center">Aciertos: ${hits} de ${n-1}</p>`;
+   else if(style==='turnos')r.innerHTML=`<div class="btns"><button class="btn ok" data-a="y">✓ ¡Acertó!</button><button class="btn no" data-a="x">✗ Falló</button></div>`;
+   else r.innerHTML=`<p class="lbl center">¿Quién la ha dicho primero?</p>${pickChips(P())}<button class="btn no" data-a="x">Nadie</button>`;
+   H.y=()=>{if(style==='solo')hits++;else sc[who]++;done(true)};H.x=()=>done(false);H.chip=t=>{sc[P()[+t.dataset.i]]++;done(true)}};
+  const done=ok=>{if(ok){confetti();beep(880,.15)}turn++;
+   if(style!=='solo'&&goal){const top=Object.entries(sc).sort((a,b)=>b[1]-a[1])[0];if(top[1]>=goal){later(300,confetti);screen(g,`<div class="center"><div style="font-size:80px">🏆</div><h1 style="font-size:40px;color:var(--yel)">¡${esc(top[0])} gana!</h1><p class="sub">${n} preguntas jugadas</p>${boardHTML(sc)}<button class="btn primary xl" data-a="re">Otra partida</button><button class="btn" data-a="cfg">Cambiar categorías</button></div>`,{re:()=>{sc=zero();turn=0;n=0;ask()},cfg:setup});return}}
+   if(style!=='solo'&&!ok&&style==='turnos'){}
+   const mid=style==='solo'?`<p class="stats center">Aciertos: <b>${hits}</b> de ${n}</p>`:boardHTML(sc);
+   const r=$('#qaR');if(r)r.innerHTML=`${mid}<button class="btn primary xl" data-a="n">Siguiente pregunta ➜</button><button class="btn ghost" data-a="cfg">⚙️ Categorías</button>`;H.n=ask;H.cfg=setup};
+  setup()}});
+
 /* ================= INICIO ================= */
 function home(){clearAll();onStop();CUR=null;TOUR=null;const n=S.names.length,ps=P();
  const ok=GAMES.filter(g=>n>=g.min&&n<=g.max),best=ok.filter(g=>n>=g.best[0]&&n<=g.best[1]),also=ok.filter(g=>!best.includes(g)),no=GAMES.filter(g=>!ok.includes(g));
